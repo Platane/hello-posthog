@@ -18,6 +18,9 @@ out vec4 v_color;
 
 
 void main() {
+
+    // as it is not possible to pass a mat as attribute,
+    // pass 4 vec4 instead and reconstruct here
     mat4 a_objectMatrix = mat4(a_objectMatrix1, a_objectMatrix2, a_objectMatrix3, a_objectMatrix4);
 
 
