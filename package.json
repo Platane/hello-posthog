@@ -3,7 +3,7 @@
 	"devDependencies": {
 		"@types/bun": "1.2.14",
 		"typescript": "5.8.3",
-		"posthog": "https://github.com/PostHog/posthog-foss.git",
+		"posthog": "https://github.com/PostHog/posthog-foss.git#b1284e8bce10818ff1ca0ba9387da8c2d9b3615d",
 		"vite": "7.0.6",
 		"gl-matrix": "3.4.3"
 	}
