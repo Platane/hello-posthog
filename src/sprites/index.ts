@@ -90,16 +90,42 @@ const countSprites = (() => {
 	};
 })();
 
-export const createSpriteSheet = async () => {
+export type Box = [[number, number], [number, number]];
+
+const createShadow = () => {
+	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
+	const ctx = canvas.getContext("2d");
+
+	ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+	ctx.beginPath();
+	ctx.arc(
+		SOURCE_SIZE / 2,
+		SOURCE_SIZE / 2,
+		(SOURCE_SIZE / 2) * 0.9,
+		0,
+		Math.PI * 2,
+	);
+	ctx.fill();
+
+	return { image: canvas, name: "shadow", spriteCount: 1 };
+};
+
+export const createSpriteAtlas = async () => {
 	const images = await Promise.all(
 		Object.entries(imageUrls).map(async ([name, url]) => {
 			const response = await fetch(url);
 			const blob = await response.blob();
 			const image = await createImageBitmap(blob);
 			const spriteCount = countSprites(image);
-			return { image, name, spriteCount };
+			return {
+				image: image as ImageBitmap | OffscreenCanvas,
+				name,
+				spriteCount,
+			};
 		}),
 	);
+
+	images.push(createShadow());
 
 	const totalSpriteCount = images.reduce(
 		(sum, { spriteCount }) => sum + spriteCount,
@@ -108,35 +134,36 @@ export const createSpriteSheet = async () => {
 
 	const destSize = SOURCE_SIZE;
 
-	const canvas = new OffscreenCanvas(destSize * totalSpriteCount, destSize);
+	// const canvas = new OffscreenCanvas(destSize * totalSpriteCount, destSize);
 
-	// const canvas = document.createElement("canvas");
-	// canvas.width = destSize * totalSpriteCount;
-	// canvas.height = destSize;
-	// canvas.style.position = "absolute";
-	// canvas.style.top = "0";
-	// canvas.style.width = "100%";
-	// document.body.appendChild(canvas);
+	const canvas = document.createElement("canvas");
+	canvas.width = destSize * totalSpriteCount;
+	canvas.height = destSize;
+	canvas.style.position = "absolute";
+	canvas.style.top = "0";
+	canvas.style.width = "100%";
+	document.body.appendChild(canvas);
 
 	const ctx = canvas.getContext("2d");
 
 	let i = 0;
 
-	const atlas = {} as Record<
-		keyof typeof imageUrls,
-		[[number, number], [number, number]][]
-	>;
+	const coords: Box[][] = [];
+
+	const animationIndex = {} as Record<keyof typeof imageUrls, number>;
 
 	for (const { image, name, spriteCount } of images) {
-		const coords = [];
-		atlas[name] = coords;
+		animationIndex[name] = coords.length;
+
+		const boxes = [];
+		coords.push(boxes);
 
 		let y = 0;
 		let x = 0;
 		for (let k = spriteCount; k--; ) {
-			coords.push([
-				[i / totalSpriteCount, 1],
-				[(i + 1) / totalSpriteCount, 0],
+			boxes.push([
+				[i / totalSpriteCount, 0],
+				[(i + 1) / totalSpriteCount, 1],
 			]);
 
 			ctx.drawImage(
@@ -159,9 +186,9 @@ export const createSpriteSheet = async () => {
 		}
 	}
 
-	return { texture: canvas, atlas };
+	return { texture: canvas, animationIndex, coords };
 };
 
-export type Atlas = Awaited<ReturnType<typeof createSpriteSheet>>["atlas"];
+export type AnimationIndex = Record<keyof typeof imageUrls, number>;
 
 const SOURCE_SIZE = 80;
