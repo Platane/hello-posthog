@@ -162,4 +162,6 @@ export const createSpriteSheet = async () => {
 	return { texture: canvas, atlas };
 };
 
+export type Atlas = Awaited<ReturnType<typeof createSpriteSheet>>["atlas"];
+
 const SOURCE_SIZE = 80;

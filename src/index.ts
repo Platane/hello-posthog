@@ -1,4 +1,5 @@
 import { mat4 } from "gl-matrix";
+import { createState, fillSpriteBoxes, init } from "./logic/state";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
 import { createSpriteSheet } from "./sprites";
 
@@ -16,6 +17,9 @@ gl.cullFace(gl.BACK);
 gl.enable(gl.DEPTH_TEST);
 gl.depthFunc(gl.LESS);
 
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 const renderer = createSpriteRenderer(gl);
 
 const viewMatrix = mat4.create() as Float32Array;
@@ -31,55 +35,27 @@ mat4.perspective(
 );
 mat4.identity(projectionMatrix);
 
-const MAX_ENTITIES = 128;
-const objectMatricesFlat = new Float32Array(MAX_ENTITIES * 16);
-const objectMatrices = Array.from({ length: MAX_ENTITIES }, (_, i) =>
-	objectMatricesFlat.subarray(i * 16, (i + 1) * 16),
-);
-const spriteBoxes = new Float32Array(MAX_ENTITIES * 4);
-for (let i = MAX_ENTITIES; i--; ) {
-	spriteBoxes[i * 4 + 0] = 0;
-	spriteBoxes[i * 4 + 1] = 0;
-	spriteBoxes[i * 4 + 2] = 1;
-	spriteBoxes[i * 4 + 3] = 1;
-}
-
-for (const m of objectMatrices) mat4.identity(m);
-
-mat4.translate(objectMatrices[1], objectMatrices[1], [0, -2, 0]);
-mat4.translate(objectMatrices[2], objectMatrices[2], [0.5, 1, 0]);
-mat4.translate(objectMatrices[3], objectMatrices[3], [-0.5, 3, 1]);
+const state = createState();
+init(state);
 
 const set = renderer.createSet();
 
-const loop = () => {
-	mat4.identity(objectMatrices[0]);
-	mat4.translate(objectMatrices[0], objectMatrices[0], [2, 0, 0]);
-	mat4.rotateZ(objectMatrices[0], objectMatrices[0], Date.now() / 1000);
-
-	renderer.updateSet(set, {
-		objectMatrices: objectMatricesFlat,
-		spriteBoxes,
-		numInstances: 4,
-	});
-
-	//
-
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	renderer.draw(projectionMatrix, viewMatrix, [set]);
-
-	requestAnimationFrame(loop);
-};
 createSpriteSheet().then((res) => {
 	renderer.updateSet(set, { colorTexture: res.texture });
 
-	for (let i = MAX_ENTITIES; i--; ) {
-		spriteBoxes[i * 4 + 0] = res.atlas.walk[i % res.atlas.walk.length][0][0];
-		spriteBoxes[i * 4 + 1] = res.atlas.walk[i % res.atlas.walk.length][0][1];
-		spriteBoxes[i * 4 + 2] = res.atlas.walk[i % res.atlas.walk.length][1][0];
-		spriteBoxes[i * 4 + 3] = res.atlas.walk[i % res.atlas.walk.length][1][1];
-	}
+	const loop = () => {
+		state.time++;
+		fillSpriteBoxes(state, res.atlas);
+		renderer.updateSet(set, state);
+
+		//
+
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+		renderer.draw(projectionMatrix, viewMatrix, [set]);
+
+		requestAnimationFrame(loop);
+	};
 
 	loop();
 });

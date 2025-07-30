@@ -28,5 +28,5 @@ void main() {
     vec4 p = vec4(a_position,0.0,1.0);
 
     gl_Position = u_projectionMatrix * u_viewMatrix * a_objectMatrix * p;
-    v_texCoord = mix( a_spriteBox.xy,a_spriteBox.zw, a_texCoord);
+    v_texCoord = mix(a_spriteBox.xy, a_spriteBox.zw, a_texCoord);
 }
