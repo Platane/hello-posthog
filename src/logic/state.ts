@@ -29,7 +29,7 @@ export const createState = () => {
 
 export type State = ReturnType<typeof createState>;
 
-export const fillSpriteBoxes = (state: State, atlas: Atlas) => {
+export const fillSpriteBoxesFromAnimations = (state: State, atlas: Atlas) => {
 	for (let i = state.numInstances; i--; ) {
 		const t = Math.floor(
 			(state.animations[i * 3 + 1] + state.time) / state.animations[i * 3 + 2],

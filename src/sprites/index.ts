@@ -135,8 +135,8 @@ export const createSpriteSheet = async () => {
 		let x = 0;
 		for (let k = spriteCount; k--; ) {
 			coords.push([
-				[i / totalSpriteCount, 0],
-				[(i + 1) / totalSpriteCount, 1],
+				[i / totalSpriteCount, 1],
+				[(i + 1) / totalSpriteCount, 0],
 			]);
 
 			ctx.drawImage(

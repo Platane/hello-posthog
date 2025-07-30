@@ -1,15 +1,15 @@
 import { mat4 } from "gl-matrix";
-import { createState, fillSpriteBoxes, init } from "./logic/state";
+import {
+	createState,
+	fillSpriteBoxesFromAnimations,
+	init,
+} from "./logic/state";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
 import { createSpriteSheet } from "./sprites";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const gl = canvas.getContext("webgl2")!;
 const dpr = window.devicePixelRatio ?? 1;
-canvas.width = canvas.clientWidth * dpr;
-canvas.height = canvas.clientHeight * dpr;
-
-gl.viewport(0, 0, canvas.width, canvas.height);
 
 gl.enable(gl.CULL_FACE);
 gl.cullFace(gl.BACK);
@@ -25,15 +25,26 @@ const renderer = createSpriteRenderer(gl);
 const viewMatrix = mat4.create() as Float32Array;
 mat4.identity(viewMatrix);
 mat4.fromScaling(viewMatrix, [0.2, 0.2, 0.2]);
+mat4.lookAt(viewMatrix, [0, 0, 10], [0, 0, 0], [0, 1, 0]);
 const projectionMatrix = mat4.create() as Float32Array;
-mat4.perspective(
-	projectionMatrix,
-	Math.PI / 4,
-	canvas.width / canvas.height,
-	0.1,
-	1000,
-);
-mat4.identity(projectionMatrix);
+
+const resize = () => {
+	canvas.width = canvas.clientWidth * dpr;
+	canvas.height = canvas.clientHeight * dpr;
+
+	gl.viewport(0, 0, canvas.width, canvas.height);
+
+	mat4.perspective(
+		projectionMatrix,
+		Math.PI / 4,
+		canvas.width / canvas.height,
+		0.1,
+		1000,
+	);
+};
+resize();
+
+window.onresize = resize;
 
 const state = createState();
 init(state);
@@ -45,7 +56,7 @@ createSpriteSheet().then((res) => {
 
 	const loop = () => {
 		state.time++;
-		fillSpriteBoxes(state, res.atlas);
+		fillSpriteBoxesFromAnimations(state, res.atlas);
 		renderer.updateSet(set, state);
 
 		//
