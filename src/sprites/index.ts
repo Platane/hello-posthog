@@ -19,6 +19,26 @@ const imageUrls = {
 		`posthog/frontend/public/hedgehog/sprites/accessories/sunglasses.png`,
 		import.meta.url,
 	),
+	glasses: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/glasses.png`,
+		import.meta.url,
+	),
+	tophat: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/tophat.png`,
+		import.meta.url,
+	),
+	pineapple: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/pineapple.png`,
+		import.meta.url,
+	),
+	party: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/party.png`,
+		import.meta.url,
+	),
+	chef: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/chef.png`,
+		import.meta.url,
+	),
 };
 
 /**

@@ -46,6 +46,7 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 
 	const a_position = gl.getAttribLocation(program, "a_position");
 	const a_texCoord = gl.getAttribLocation(program, "a_texCoord");
+	const a_spriteBox = gl.getAttribLocation(program, "a_spriteBox");
 	const a_objectMatrix1 = gl.getAttribLocation(program, "a_objectMatrix1");
 	const a_objectMatrix2 = gl.getAttribLocation(program, "a_objectMatrix2");
 	const a_objectMatrix3 = gl.getAttribLocation(program, "a_objectMatrix3");
@@ -77,24 +78,73 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 		gl.vertexAttribPointer(a_objectMatrix4, 4, gl.FLOAT, false, 16 * 4, 12 * 4);
 		gl.vertexAttribDivisor(a_objectMatrix4, 1);
 
-		return { vao, objectMatricesBuffer, numInstances: 0 };
+		const spriteBoxBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, spriteBoxBuffer);
+		gl.enableVertexAttribArray(a_spriteBox);
+		gl.vertexAttribPointer(a_spriteBox, 4, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(a_spriteBox, 1);
+
+		const colorTexture = gl.createTexture();
+
+		return {
+			vao,
+			objectMatricesBuffer,
+			spriteBoxBuffer,
+			colorTexture,
+			numInstances: 0,
+		};
 	};
 
 	const updateSet = (
 		set: ReturnType<typeof createSet>,
-		objectMatrices: Float32Array,
-		numInstances: number,
-	) => {
-		gl.bindBuffer(gl.ARRAY_BUFFER, set.objectMatricesBuffer);
-		gl.bufferData(
-			gl.ARRAY_BUFFER,
+		{
 			objectMatrices,
-			gl.DYNAMIC_DRAW,
-			0,
-			numInstances * 16,
-		);
+			spriteBoxes,
+			colorTexture,
+			numInstances,
+		}: {
+			objectMatrices?: Float32Array;
+			spriteBoxes?: Float32Array;
+			colorTexture?: TexImageSource;
+			numInstances?: number;
+		},
+	) => {
+		if (numInstances !== undefined) set.numInstances = numInstances;
 
-		set.numInstances = numInstances;
+		if (objectMatrices) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, set.objectMatricesBuffer);
+			gl.bufferData(
+				gl.ARRAY_BUFFER,
+				objectMatrices,
+				gl.DYNAMIC_DRAW,
+				0,
+				set.numInstances * 16,
+			);
+		}
+
+		if (spriteBoxes) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, set.spriteBoxBuffer);
+			gl.bufferData(
+				gl.ARRAY_BUFFER,
+				spriteBoxes,
+				gl.DYNAMIC_DRAW,
+				0,
+				set.numInstances * 4,
+			);
+		}
+
+		if (colorTexture) {
+			gl.bindTexture(gl.TEXTURE_2D, set.colorTexture);
+			gl.texImage2D(
+				gl.TEXTURE_2D,
+				0,
+				gl.RGBA,
+				gl.RGBA,
+				gl.UNSIGNED_BYTE,
+				colorTexture,
+			);
+			gl.generateMipmap(gl.TEXTURE_2D);
+		}
 	};
 
 	const draw = (
@@ -107,8 +157,12 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 		gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix);
 		gl.uniformMatrix4fv(u_projectionMatrix, false, projectionMatrix);
 
-		for (const { vao, numInstances } of sets) {
+		for (const { vao, colorTexture, numInstances } of sets) {
 			gl.bindVertexArray(vao);
+
+			gl.activeTexture(gl.TEXTURE0 + 0);
+			gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+
 			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, numInstances);
 		}
 	};
