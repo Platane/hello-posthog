@@ -18,7 +18,7 @@ jobs:
 
       - run: bunx tsc
 
-      - run: bunx vite build src --outDir ../dist
+      - run: bunx vite build src --base hello-posthog --outDir ../dist
 
       - uses: actions/upload-pages-artifact@v3
         with:
