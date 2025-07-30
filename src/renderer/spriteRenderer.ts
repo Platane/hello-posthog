@@ -23,11 +23,6 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	if (!gl.getProgramParameter(program, gl.LINK_STATUS))
 		throw "Unable to initialize the shader program.";
 
-	const u_viewMatrix = gl.getUniformLocation(program, "u_viewMatrix");
-
-	const vao = gl.createVertexArray();
-	gl.bindVertexArray(vao);
-
 	const quadBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
 
@@ -43,21 +38,79 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	]);
 	gl.bufferData(gl.ARRAY_BUFFER, quadData, gl.STATIC_DRAW);
 
+	const u_viewMatrix = gl.getUniformLocation(program, "u_viewMatrix");
+	const u_projectionMatrix = gl.getUniformLocation(
+		program,
+		"u_projectionMatrix",
+	);
+
 	const a_position = gl.getAttribLocation(program, "a_position");
-	gl.enableVertexAttribArray(a_position);
-	gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0); // read interleaved data, each vertex have 16 bytes ( (2+2) * 4 bytes for float32 ), position offset is 0
-
 	const a_texCoord = gl.getAttribLocation(program, "a_texCoord");
-	gl.enableVertexAttribArray(a_texCoord);
-	gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 16, 8);
+	const a_objectMatrix1 = gl.getAttribLocation(program, "a_objectMatrix1");
+	const a_objectMatrix2 = gl.getAttribLocation(program, "a_objectMatrix2");
+	const a_objectMatrix3 = gl.getAttribLocation(program, "a_objectMatrix3");
+	const a_objectMatrix4 = gl.getAttribLocation(program, "a_objectMatrix4");
 
-	const draw = (viewMatrix: Float32Array) => {
-		gl.useProgram(program);
+	const createSet = () => {
+		const vao = gl.createVertexArray();
 		gl.bindVertexArray(vao);
 
-		gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix);
+		gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+		gl.enableVertexAttribArray(a_position);
+		gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0); // read interleaved data, each vertex have 16 bytes ( (2+2) * 4 bytes for float32 ), position offset is 0
 
-		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+		gl.enableVertexAttribArray(a_texCoord);
+		gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 16, 8);
+
+		const objectMatricesBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, objectMatricesBuffer);
+		gl.enableVertexAttribArray(a_objectMatrix1);
+		gl.vertexAttribPointer(a_objectMatrix1, 4, gl.FLOAT, false, 16 * 4, 0 * 4);
+		gl.vertexAttribDivisor(a_objectMatrix1, 1);
+		gl.enableVertexAttribArray(a_objectMatrix2);
+		gl.vertexAttribPointer(a_objectMatrix2, 4, gl.FLOAT, false, 16 * 4, 4 * 4);
+		gl.vertexAttribDivisor(a_objectMatrix2, 1);
+		gl.enableVertexAttribArray(a_objectMatrix3);
+		gl.vertexAttribPointer(a_objectMatrix3, 4, gl.FLOAT, false, 16 * 4, 8 * 4);
+		gl.vertexAttribDivisor(a_objectMatrix3, 1);
+		gl.enableVertexAttribArray(a_objectMatrix4);
+		gl.vertexAttribPointer(a_objectMatrix4, 4, gl.FLOAT, false, 16 * 4, 12 * 4);
+		gl.vertexAttribDivisor(a_objectMatrix4, 1);
+
+		return { vao, objectMatricesBuffer, numInstances: 0 };
+	};
+
+	const updateSet = (
+		set: ReturnType<typeof createSet>,
+		objectMatrices: Float32Array,
+		numInstances: number,
+	) => {
+		gl.bindBuffer(gl.ARRAY_BUFFER, set.objectMatricesBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			objectMatrices,
+			gl.DYNAMIC_DRAW,
+			0,
+			numInstances * 16,
+		);
+
+		set.numInstances = numInstances;
+	};
+
+	const draw = (
+		projectionMatrix: Float32Array,
+		viewMatrix: Float32Array,
+		sets: ReturnType<typeof createSet>[],
+	) => {
+		gl.useProgram(program);
+
+		gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix);
+		gl.uniformMatrix4fv(u_projectionMatrix, false, projectionMatrix);
+
+		for (const { vao, numInstances } of sets) {
+			gl.bindVertexArray(vao);
+			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, numInstances);
+		}
 	};
 
 	const dispose = () => {
@@ -67,5 +120,5 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 		gl.deleteShader(vertexShader);
 	};
 
-	return { draw, dispose };
+	return { draw, createSet, updateSet, dispose };
 };
