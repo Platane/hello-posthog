@@ -1,6 +1,4 @@
-// @ts-ignore
 import fragmentShaderCode from "./shader.frag?raw";
-// @ts-ignore
 import vertexShaderCode from "./shader.vert?raw";
 
 export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {

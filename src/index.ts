@@ -1,5 +1,6 @@
 import { mat4 } from "gl-matrix";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
+import { createSpriteSheet } from "./sprites";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const gl = canvas.getContext("webgl2")!;
@@ -21,4 +22,7 @@ const loop = () => {
 
 	requestAnimationFrame(loop);
 };
-loop();
+createSpriteSheet().then((res) => {
+	console.log(res);
+	loop();
+});

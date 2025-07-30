@@ -1,11 +1,12 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "nodenext",
+		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
-		"module": "NodeNext",
+		"module": "ESNext",
 		"noEmit": true,
 		"lib": ["ES2024", "DOM"],
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"types": ["vite/client"]
 	},
 	"exclude": ["node_modules"]
 }
