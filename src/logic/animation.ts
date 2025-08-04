@@ -10,7 +10,10 @@ export const deriveSpriteBoxesFromAnimations = (
 		const animationOffset = state.animations[i * 3 + 1];
 		const animationSpeed = state.animations[i * 3 + 2];
 
-		const t = Math.floor(state.time / animationSpeed) + animationOffset;
+		const t =
+			animationSpeed === 0
+				? 0
+				: Math.floor(state.time / animationSpeed) + animationOffset;
 
 		const boxes = coords[animationIndex];
 

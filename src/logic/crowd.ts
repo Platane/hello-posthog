@@ -2,10 +2,10 @@ import { mat4 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 import type { State } from "./state";
 
-export const SPEED = 0.01;
+export const SPEED = 0.05;
 
 export const stepCrowd = (state: State, animationIndex: AnimationIndex) => {
-	for (let i = state.numInstances; i--; ) {
+	for (let i = state.numRunners; i--; ) {
 		const tr = state.objectTransforms[i];
 
 		const x = tr[12];
@@ -19,16 +19,19 @@ export const stepCrowd = (state: State, animationIndex: AnimationIndex) => {
 
 		//
 
-		const dx = x - state.targets[i * 2 + 0];
-		const dy = y - state.targets[i * 2 + 1];
+		const dx = state.targets[i * 2 + 0] - x;
+		const dy = state.targets[i * 2 + 1] - y;
 
 		const l = Math.hypot(dx, dy);
 
-		if (l < 0.3) {
+		if (l < SPEED * 5) {
 			const A = 10;
 			state.targets[i * 2 + 0] = (Math.random() - 0.5) * A;
 			state.targets[i * 2 + 1] = (Math.random() - 0.5) * A;
 		}
+
+		vx = dx / l;
+		vy = dy / l;
 
 		//
 		// apply acceleration
@@ -45,7 +48,7 @@ export const stepCrowd = (state: State, animationIndex: AnimationIndex) => {
 };
 
 export const deriveTransform = (state: State) => {
-	for (let i = state.numInstances; i--; ) {
+	for (let i = state.numRunners; i--; ) {
 		const tr = state.objectTransforms[i];
 
 		const x = tr[12];
@@ -64,5 +67,18 @@ export const deriveTransform = (state: State) => {
 		if (vx < -0.8) {
 			mat4.rotateZ(tr, tr, 0.1);
 		}
+
+		// shadow
+		const shadowTr = state.objectTransforms[state.numRunners + i];
+		mat4.identity(shadowTr);
+		mat4.translate(shadowTr, shadowTr, [x + 0.1, y, -0.78]);
+		mat4.scale(shadowTr, shadowTr, [0.7, 0.7, 0.7]);
+
+		// accessory
+		const accTr = state.objectTransforms[state.numRunners * 2 + i];
+		mat4.identity(accTr);
+		mat4.translate(accTr, accTr, [x, y + 0.05, 0]);
+		mat4.scale(accTr, accTr, [vx > 0 ? 1 : -1, 1, 1]);
+		mat4.rotateX(accTr, accTr, -Math.PI / 2);
 	}
 };

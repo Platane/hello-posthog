@@ -1,4 +1,5 @@
 import { mat4, type vec3 } from "gl-matrix";
+import { AnimationIndex } from "../sprites";
 
 const MAX_ENTITIES = 128;
 
@@ -35,6 +36,7 @@ export const createState = () => {
 		directions,
 		velocities,
 		numInstances: 0,
+		numRunners: 0,
 		time: 0,
 		pointer: { x: 0, y: 0, down: false },
 	};
@@ -42,9 +44,24 @@ export const createState = () => {
 
 export type State = ReturnType<typeof createState>;
 
-export const setInitialState = (state: State) => {
+export const setInitialState = (
+	state: State,
+	animationIndex: AnimationIndex,
+) => {
+	const accessoriesIndex = [
+		animationIndex.cap,
+		animationIndex.chef,
+		animationIndex.cowboy,
+		animationIndex.glasses,
+		animationIndex.tophat,
+		animationIndex.party,
+		animationIndex.pineapple,
+		animationIndex.sunglasses,
+	];
+
 	const N = 12;
-	state.numInstances = N;
+	state.numRunners = N;
+	state.numInstances = N * 3;
 	for (let i = N; i--; ) {
 		mat4.fromTranslation(state.objectTransforms[i], [
 			(Math.random() * 2 - 1) * 4,
@@ -52,16 +69,22 @@ export const setInitialState = (state: State) => {
 			0,
 		]);
 
-		state.animations[i * 3 + 0] = 0;
-		state.animations[i * 3 + 1] = Math.floor(Math.random() * 255);
-		state.animations[i * 3 + 2] = 2;
+		state.animations[i * 3 + 0] = animationIndex.walk;
+		state.animations[i * 3 + 1] = Math.floor(Math.random() * 255); // offset
+		state.animations[i * 3 + 2] = 2; // speed
 
 		state.targets[i * 2 + 0] = (Math.random() * 2 - 1) * 4;
 		state.targets[i * 2 + 1] = (Math.random() * 2 - 1) * 4;
 
-		// const a = 4;
-		const a = Math.random() * Math.PI * 2;
-		state.velocities[i * 2 + 0] = Math.cos(a);
-		state.velocities[i * 2 + 1] = Math.sin(a);
+		// shadows
+		state.animations[N * 3 + i * 3 + 0] = animationIndex.shadow;
+		state.animations[N * 3 + i * 3 + 1] = 0; // offset
+		state.animations[N * 3 + i * 3 + 2] = 0; // speed
+
+		// accessories
+		state.animations[N * 3 * 2 + i * 3 + 0] =
+			accessoriesIndex[Math.floor(Math.random() * accessoriesIndex.length)];
+		state.animations[N * 3 * 2 + i * 3 + 1] = 0; // offset
+		state.animations[N * 3 * 2 + i * 3 + 2] = 0; // speed
 	}
 };

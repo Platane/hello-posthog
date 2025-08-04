@@ -23,7 +23,6 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 const renderer = createSpriteRenderer(gl);
 
 const state = createState();
-setInitialState(state);
 
 const resize = () => {
 	canvas.width = canvas.clientWidth * dpr;
@@ -52,6 +51,7 @@ const sets = [set];
 
 createSpriteAtlas().then((res) => {
 	renderer.updateSet(set, { colorTexture: res.texture });
+	setInitialState(state, res.animationIndex);
 
 	const loop = () => {
 		state.time++;

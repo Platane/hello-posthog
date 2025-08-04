@@ -150,7 +150,7 @@ export const createSpriteAtlas = async () => {
 
 	const coords: Box[][] = [];
 
-	const animationIndex = {} as Record<keyof typeof imageUrls, number>;
+	const animationIndex = {} as AnimationIndex;
 
 	for (const { image, name, spriteCount } of images) {
 		animationIndex[name] = coords.length;
@@ -189,6 +189,8 @@ export const createSpriteAtlas = async () => {
 	return { texture: canvas, animationIndex, coords };
 };
 
-export type AnimationIndex = Record<keyof typeof imageUrls, number>;
+export type AnimationIndex = Record<keyof typeof imageUrls, number> & {
+	shadow: number;
+};
 
 const SOURCE_SIZE = 80;
