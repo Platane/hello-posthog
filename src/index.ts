@@ -1,7 +1,7 @@
 import { mat4 } from "gl-matrix";
-import { deriveSpriteBoxesFromAnimations } from "./logic/animation";
 import { deriveViewMatrix, stepCameraWobble } from "./logic/camera";
-import { deriveTransform, stepCrowd } from "./logic/crowd";
+import { stepCrowd } from "./logic/crowd";
+import { deriveSprites } from "./logic/sprites";
 import { createState, setInitialState } from "./logic/state";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
 import { createSpriteAtlas } from "./sprites";
@@ -56,12 +56,12 @@ createSpriteAtlas().then((res) => {
 	const loop = () => {
 		state.time++;
 
+		
 		stepCrowd(state, res.animationIndex);
 		stepCameraWobble(state);
 
-		deriveTransform(state);
+		deriveSprites(state, res.animationIndex, res.coords);
 		deriveViewMatrix(state);
-		deriveSpriteBoxesFromAnimations(state, res.coords);
 
 		//
 

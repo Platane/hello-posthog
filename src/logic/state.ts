@@ -1,7 +1,7 @@
-import { mat4, type vec3 } from "gl-matrix";
-import { AnimationIndex } from "../sprites";
+import { mat4, vec2, type vec3 } from "gl-matrix";
+import type { AnimationIndex } from "../sprites";
 
-const MAX_ENTITIES = 128;
+const MAX_ENTITIES = 512;
 
 export const createState = () => {
 	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
@@ -10,35 +10,32 @@ export const createState = () => {
 	);
 	const spriteBoxes = new Float32Array(MAX_ENTITIES * 4);
 
-	//  0 -> sprite
-	//  1 -> offset
-	//  2 -> speed
-	const animations = new Uint8Array(MAX_ENTITIES * 3);
-
-	const directions = new Float32Array(MAX_ENTITIES * 2);
-
-	const velocities = new Float32Array(MAX_ENTITIES * 2);
-
-	const targets = new Float32Array(MAX_ENTITIES * 2);
-
 	const viewMatrix = mat4.create() as Float32Array;
 	const projectionMatrix = mat4.create() as Float32Array;
 
 	return {
+		time: 0,
+		pointer: { x: 0, y: 0, down: false },
+
 		camera: { eye: [0, 4, 4] as vec3 },
 		viewMatrix,
 		projectionMatrix,
-		targets,
+
 		objectMatrices,
 		spriteBoxes,
 		objectTransforms,
-		animations,
-		directions,
-		velocities,
 		numInstances: 0,
-		numRunners: 0,
-		time: 0,
-		pointer: { x: 0, y: 0, down: false },
+
+		runners: [] as {
+			position: vec2;
+			velocity: vec2;
+			direction: vec2;
+			target: vec2;
+			animationIndex: number;
+			animationOffset: number;
+			animationSpeed: number;
+			accessories: number[];
+		}[],
 	};
 };
 
@@ -48,43 +45,41 @@ export const setInitialState = (
 	state: State,
 	animationIndex: AnimationIndex,
 ) => {
-	const accessoriesIndex = [
+	const accessoriesIndex1 = [
 		animationIndex.cap,
 		animationIndex.chef,
 		animationIndex.cowboy,
-		animationIndex.glasses,
 		animationIndex.tophat,
 		animationIndex.party,
 		animationIndex.pineapple,
-		animationIndex.sunglasses,
 	];
+	const accessoriesIndex2 = [animationIndex.glasses, animationIndex.sunglasses];
 
-	const N = 12;
-	state.numRunners = N;
-	state.numInstances = N * 3;
+	const N = 50;
 	for (let i = N; i--; ) {
-		mat4.fromTranslation(state.objectTransforms[i], [
-			(Math.random() * 2 - 1) * 4,
-			(Math.random() * 2 - 1) * 4,
-			0,
-		]);
+		const accessories: number[] = [];
 
-		state.animations[i * 3 + 0] = animationIndex.walk;
-		state.animations[i * 3 + 1] = Math.floor(Math.random() * 255); // offset
-		state.animations[i * 3 + 2] = 2; // speed
+		const a1 =
+			accessoriesIndex1[
+				Math.floor(Math.random() * (accessoriesIndex1.length + 2))
+			];
+		const a2 =
+			accessoriesIndex2[
+				Math.floor(Math.random() * (accessoriesIndex2.length + 6))
+			];
 
-		state.targets[i * 2 + 0] = (Math.random() * 2 - 1) * 4;
-		state.targets[i * 2 + 1] = (Math.random() * 2 - 1) * 4;
+		if (a1 !== undefined) accessories.push(a1);
+		if (a2 !== undefined) accessories.push(a2);
 
-		// shadows
-		state.animations[N * 3 + i * 3 + 0] = animationIndex.shadow;
-		state.animations[N * 3 + i * 3 + 1] = 0; // offset
-		state.animations[N * 3 + i * 3 + 2] = 0; // speed
-
-		// accessories
-		state.animations[N * 3 * 2 + i * 3 + 0] =
-			accessoriesIndex[Math.floor(Math.random() * accessoriesIndex.length)];
-		state.animations[N * 3 * 2 + i * 3 + 1] = 0; // offset
-		state.animations[N * 3 * 2 + i * 3 + 2] = 0; // speed
+		state.runners.push({
+			position: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
+			velocity: [0, 0],
+			direction: [1, 0],
+			target: [0, 0],
+			animationIndex: animationIndex.walk,
+			animationOffset: Math.floor(Math.random() * 10),
+			animationSpeed: 2,
+			accessories,
+		});
 	}
 };
