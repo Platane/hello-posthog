@@ -39,6 +39,7 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	gl.bufferData(gl.ARRAY_BUFFER, quadData, gl.STATIC_DRAW);
 
 	const u_viewMatrix = gl.getUniformLocation(program, "u_viewMatrix");
+	const u_colorTexture = gl.getUniformLocation(program, "u_colorTexture");
 	const u_projectionMatrix = gl.getUniformLocation(
 		program,
 		"u_projectionMatrix",
@@ -47,11 +48,11 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	const a_position = gl.getAttribLocation(program, "a_position");
 	const a_texCoord = gl.getAttribLocation(program, "a_texCoord");
 	const a_spriteBox = gl.getAttribLocation(program, "a_spriteBox");
-	const a_hue = gl.getAttribLocation(program, "a_hue");
 	const a_objectMatrix1 = gl.getAttribLocation(program, "a_objectMatrix1");
 	const a_objectMatrix2 = gl.getAttribLocation(program, "a_objectMatrix2");
 	const a_objectMatrix3 = gl.getAttribLocation(program, "a_objectMatrix3");
 	const a_objectMatrix4 = gl.getAttribLocation(program, "a_objectMatrix4");
+	const a_hue = gl.getAttribLocation(program, "a_hue");
 
 	const createSet = () => {
 		const vao = gl.createVertexArray();
@@ -177,11 +178,12 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix);
 		gl.uniformMatrix4fv(u_projectionMatrix, false, projectionMatrix);
+		gl.uniform1i(u_colorTexture, 1); // texture index 1
 
 		for (const { vao, colorTexture, numInstances } of sets) {
 			gl.bindVertexArray(vao);
 
-			gl.activeTexture(gl.TEXTURE0 + 0);
+			gl.activeTexture(gl.TEXTURE1);
 			gl.bindTexture(gl.TEXTURE_2D, colorTexture);
 
 			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, numInstances);

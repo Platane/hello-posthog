@@ -70,19 +70,19 @@ const imageUrls = {
  * ie which sprite are not transparent in the grid
  */
 const countSprites = (() => {
-	// const canvas = document.createElement("canvas");
-	// canvas.width = 128;
-	// canvas.height = 128;
-	// canvas.style.position = "absolute";
-	// canvas.style.top = "0";
-	// canvas.style.width = "100%";
-	// document.body.appendChild(canvas);
+	const canvas = document.createElement("canvas");
+	canvas.width = 128;
+	canvas.height = 128;
+	canvas.style.position = "absolute";
+	canvas.style.top = "0";
+	canvas.style.width = "100%";
+	document.body.appendChild(canvas);
 
-	const canvas = new OffscreenCanvas(128, 128);
+	// const canvas = new OffscreenCanvas(128, 128);
 	const ctx = canvas.getContext("2d");
 
 	return (img: CanvasImageSource & { width: number; height: number }) => {
-		const downsizedSize = 6;
+		const downsizedSize = 8;
 		const margin = 1;
 		const w = Math.ceil((img.width / SOURCE_SIZE) * downsizedSize);
 		const h = Math.ceil((img.height / SOURCE_SIZE) * downsizedSize);
@@ -201,6 +201,7 @@ export const createSpriteAtlas = async () => {
 				[(i + 1) / totalSpriteCount, 1],
 			]);
 
+			ctx.imageSmoothingEnabled = false;
 			ctx.drawImage(
 				image,
 				x * SOURCE_SIZE,

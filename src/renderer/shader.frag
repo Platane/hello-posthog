@@ -15,6 +15,8 @@ void main() {
 
     // outColor.rgb *= (v_hue*0.1+1.0);
 
+    // outColor = vec4(v_texCoord, 1.0, 1.0);
+
     if( outColor.a <= 0.0 ) {
         outColor = vec4(0.0, 1.0, 1.0, 0.5);
         discard;
