@@ -138,15 +138,15 @@ export const createSpriteAtlas = async () => {
 
 	const destSize = SOURCE_SIZE;
 
-	// const canvas = new OffscreenCanvas(destSize * totalSpriteCount, destSize);
+	const canvas = new OffscreenCanvas(destSize * totalSpriteCount, destSize);
 
-	const canvas = document.createElement("canvas");
-	canvas.width = destSize * totalSpriteCount;
-	canvas.height = destSize;
-	canvas.style.position = "absolute";
-	canvas.style.top = "0";
-	canvas.style.width = "100%";
-	document.body.appendChild(canvas);
+	// const canvas = document.createElement("canvas");
+	// canvas.width = destSize * totalSpriteCount;
+	// canvas.height = destSize;
+	// canvas.style.position = "absolute";
+	// canvas.style.top = "0";
+	// canvas.style.width = "100%";
+	// document.body.appendChild(canvas);
 
 	const ctx = canvas.getContext("2d");
 

@@ -6,16 +6,17 @@ export const computeFinalPlacement = (
 	animationIndex: AnimationIndex,
 	text: string,
 ) => {
-	const canvas = document.createElement("canvas");
-	document.body.appendChild(canvas);
-	canvas.style.width = "512px";
-	canvas.style.height = "128px";
-	canvas.style.position = "absolute";
-	canvas.style.top = "0";
-	canvas.style.left = "0";
-	canvas.style.backgroundColor = "#354afe33";
-	canvas.width = 1024;
-	canvas.height = 256;
+	const canvas = new OffscreenCanvas(512, 128);
+	// const canvas = document.createElement("canvas");
+	// document.body.appendChild(canvas);
+	// canvas.style.width = "512px";
+	// canvas.style.height = "128px";
+	// canvas.style.position = "absolute";
+	// canvas.style.top = "0";
+	// canvas.style.left = "0";
+	// canvas.style.backgroundColor = "#354afe33";
+	// canvas.width = 1024;
+	// canvas.height = 256;
 
 	const ctx = canvas.getContext("2d")!;
 	ctx.textBaseline = "middle";
@@ -49,10 +50,11 @@ export const computeFinalPlacement = (
 		}
 
 		const k = 20 / imageData.height;
-		runner.target[0] = -(x - imageData.width * 0.5) * k;
-		runner.target[1] = (y - imageData.height * 0.5) * k;
-		runner.randomTargetCount = -1;
+		runner.finalTarget[0] = -(x - imageData.width * 0.5) * k;
+		runner.finalTarget[1] = (y - imageData.height * 0.5) * k;
+		runner.randomTargetCount = 2;
 
 		runner.animationIndex = animationIndex.walk;
+		runner.animationSpeed = 3;
 	}
 };

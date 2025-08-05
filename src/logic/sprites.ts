@@ -35,15 +35,18 @@ export const deriveSprites = (
 	for (const runner of state.runners) {
 		const tr = state.objectTransforms[i];
 
+		if (Math.abs(runner.velocity[0]) > 0.05)
+			runner.spriteDirection = runner.velocity[0] > 0 ? 1 : -1;
+
 		vec3.set(v, runner.position[0], runner.position[1], 0);
-		vec3.set(s, runner.velocity[0] > 0 ? 1 : -1, 1, 1);
+		vec3.set(s, runner.spriteDirection, 1, 1);
 		mat4.fromRotationTranslationScale(tr, q, v, s);
 		mat4.rotateX(tr, tr, -Math.PI / 2);
 
-		if (runner.velocity[0] > 0.8) {
+		if (runner.velocity[0] > 0.08) {
 			mat4.rotateZ(tr, tr, 0.1);
 		}
-		if (runner.velocity[0] < -0.8) {
+		if (runner.velocity[0] < -0.08) {
 			mat4.rotateZ(tr, tr, 0.1);
 		}
 
@@ -78,13 +81,6 @@ export const deriveSprites = (
 
 			i++;
 		}
-
-		// accessory
-		// const accTr = state.objectTransforms[state.numRunners * 2 + i];
-		// mat4.identity(accTr);
-		// mat4.translate(accTr, accTr, [x, y + 0.05, 0]);
-		// mat4.scale(accTr, accTr, [vx > 0 ? 1 : -1, 1, 1]);
-		// mat4.rotateX(accTr, accTr, -Math.PI / 2);
 	}
 
 	state.numInstances = i;

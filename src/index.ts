@@ -1,7 +1,8 @@
 import { mat4 } from "gl-matrix";
 import { deriveViewMatrix, stepCameraWobble } from "./logic/camera";
 import { computeFinalPlacement } from "./logic/computeFinalPlacement";
-import { stepCrowd } from "./logic/crowd";
+import { stepCrowd, stepRunnerLogic } from "./logic/crowd";
+import { stepProgress } from "./logic/progress";
 import { deriveSprites } from "./logic/sprites";
 import { createState, setInitialState } from "./logic/state";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
@@ -40,13 +41,21 @@ const resize = () => {
 		2000,
 	);
 };
-window.addEventListener("resize", resize);
 resize();
+
+window.addEventListener("resize", resize);
 
 window.addEventListener("mousemove", (e) => {
 	state.pointer.x = e.clientX / window.innerWidth;
 	state.pointer.y = e.clientY / window.innerHeight;
 });
+window.addEventListener(
+	"wheel",
+	(e) => {
+		state.zoom += e.deltaY;
+	},
+	{ passive: true },
+);
 
 const set = renderer.createSet();
 const sets = [set];
@@ -54,13 +63,19 @@ const sets = [set];
 createSpriteAtlas().then((res) => {
 	renderer.updateSet(set, { colorTexture: res.texture });
 	setInitialState(state, res.animationIndex);
-	computeFinalPlacement(state, res.animationIndex, "Hello");
+	computeFinalPlacement(
+		state,
+		res.animationIndex,
+		new URL(location.href).searchParams.get("message") || "Hello",
+	);
 
 	const loop = () => {
 		state.time++;
 
-		stepCrowd(state, res.animationIndex);
+		stepCrowd(state);
+		stepRunnerLogic(state, res.animationIndex);
 		stepCameraWobble(state);
+		stepProgress(state);
 
 		deriveSprites(state, res.animationIndex, res.coords);
 		deriveViewMatrix(state);

@@ -1,7 +1,7 @@
-import { mat4, vec2, type vec3 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 
-const MAX_ENTITIES = 10_000;
+export const MAX_ENTITIES = 10_000;
 
 export const createState = () => {
 	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
@@ -15,7 +15,8 @@ export const createState = () => {
 
 	return {
 		time: 0,
-		pointer: { x: 0, y: 0, down: false },
+		pointer: { x: 0.5, y: 0.5, down: false },
+		zoom: 800,
 
 		camera: { eye: [0, 4, 4] as vec3 },
 		viewMatrix,
@@ -26,20 +27,44 @@ export const createState = () => {
 		objectTransforms,
 		numInstances: 0,
 
-		runners: [] as {
-			position: vec2;
-			velocity: vec2;
-			direction: vec2;
-			target: vec2;
-			finalTarget: vec2;
-			randomTargetCount: number;
-			animationIndex: number;
-			animationOffset: number;
-			animationSpeed: number;
-			accessories: number[];
-		}[],
+		runners: [] as Runner[],
 	};
 };
+export enum goal {
+	idle,
+	resting,
+	goToTarget,
+}
+type WithGoal =
+	| {
+			goal: goal.idle;
+	  }
+	| {
+			goal: goal.goToTarget;
+			target: vec2;
+	  }
+	| {
+			goal: goal.resting;
+			remainingTimeResting: number;
+	  };
+type WithFinalGoal = {
+	finalTarget: vec2;
+	randomTargetCount: number;
+};
+type Animated = {
+	animationIndex: number;
+	animationOffset: number;
+	animationSpeed: number;
+};
+export type Runner = {
+	position: vec2;
+	velocity: vec2;
+	spriteDirection: 1 | -1;
+} & WithGoal &
+	Animated &
+	WithFinalGoal & {
+		accessories: number[];
+	};
 
 export type State = ReturnType<typeof createState>;
 
@@ -76,14 +101,15 @@ export const setInitialState = (
 		state.runners.push({
 			position: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
 			velocity: [0, 0],
-			direction: [1, 0],
-			target: [0, 0],
 			animationIndex: animationIndex.walk,
 			animationOffset: Math.floor(Math.random() * 10),
 			animationSpeed: 2,
 			accessories,
 			finalTarget: [0, 0],
 			randomTargetCount: 4,
+			goal: goal.idle,
+			spriteDirection: 1,
+			...{ target: [0, 0] },
 		});
 	}
 };
