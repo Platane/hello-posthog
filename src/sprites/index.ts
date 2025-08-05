@@ -70,15 +70,15 @@ const imageUrls = {
  * ie which sprite are not transparent in the grid
  */
 const countSprites = (() => {
-	const canvas = document.createElement("canvas");
-	canvas.width = 128;
-	canvas.height = 128;
-	canvas.style.position = "absolute";
-	canvas.style.top = "0";
-	canvas.style.width = "100%";
-	document.body.appendChild(canvas);
+	// const canvas = document.createElement("canvas");
+	// canvas.width = 128;
+	// canvas.height = 128;
+	// canvas.style.position = "absolute";
+	// canvas.style.top = "0";
+	// canvas.style.width = "100%";
+	// document.body.appendChild(canvas);
 
-	// const canvas = new OffscreenCanvas(128, 128);
+	const canvas = new OffscreenCanvas(128, 128);
 	const ctx = canvas.getContext("2d");
 
 	return (img: CanvasImageSource & { width: number; height: number }) => {
@@ -169,11 +169,14 @@ export const createSpriteAtlas = async () => {
 
 	const destSize = SOURCE_SIZE;
 
-	const canvas = new OffscreenCanvas(destSize * totalSpriteCount, destSize);
+	const destWidth = Math.floor(2048 / destSize) * destSize;
+	const destHeight =
+		Math.ceil(totalSpriteCount / (destWidth / destSize)) * destSize;
+	const canvas = new OffscreenCanvas(destWidth, destHeight);
 
 	// const canvas = document.createElement("canvas");
-	// canvas.width = destSize * totalSpriteCount;
-	// canvas.height = destSize;
+	// canvas.width = destWidth;
+	// canvas.height = destHeight;
 	// canvas.style.position = "absolute";
 	// canvas.style.top = "0";
 	// canvas.style.width = "100%";
@@ -181,43 +184,47 @@ export const createSpriteAtlas = async () => {
 
 	const ctx = canvas.getContext("2d");
 
-	let i = 0;
-
 	const coords: Box[][] = [];
 
 	const animationIndex = {} as AnimationIndex;
 
+	let dx = 0;
+	let dy = 0;
 	for (const { image, name, spriteCount } of images) {
 		animationIndex[name] = coords.length;
 
 		const boxes = [];
 		coords.push(boxes);
 
-		let y = 0;
-		let x = 0;
+		let sy = 0;
+		let sx = 0;
 		for (let k = spriteCount; k--; ) {
 			boxes.push([
-				[i / totalSpriteCount, 0],
-				[(i + 1) / totalSpriteCount, 1],
+				[dx / destWidth, dy / destHeight],
+				[(dx + destSize) / destWidth, (dy + destSize) / destHeight],
 			]);
 
 			ctx.imageSmoothingEnabled = false;
 			ctx.drawImage(
 				image,
-				x * SOURCE_SIZE,
-				y * SOURCE_SIZE,
+				sx,
+				sy,
 				SOURCE_SIZE,
 				SOURCE_SIZE,
-				i * destSize,
-				0,
+				dx,
+				dy,
 				destSize,
 				destSize,
 			);
-			i++;
-			x++;
-			if (x * SOURCE_SIZE >= image.width) {
-				x = 0;
-				y++;
+			dx += destSize;
+			sx += SOURCE_SIZE;
+			if (sx >= image.width) {
+				sx = 0;
+				sy += SOURCE_SIZE;
+			}
+			if (dx >= destWidth) {
+				dx = 0;
+				dy += destSize;
 			}
 		}
 	}
