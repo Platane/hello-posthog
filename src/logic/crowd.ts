@@ -65,6 +65,21 @@ export const stepCrowd = (state: State) => {
 		if (runner.goal !== goal.goToTarget) continue;
 
 		//
+		// pointer repulsion
+		{
+			const ex = p[0] - state.pointerOnGround[0];
+			const ey = p[1] - state.pointerOnGround[1];
+
+			const ll = Math.hypot(ex, ey) + 0.00001; // to avoid division by zero
+
+			const F_pointerRepulsion = 0.3;
+			const llc = ll + 0.6;
+			const ff = F_pointerRepulsion / llc;
+			a[0] += (ex / ll) * ff;
+			a[1] += (ey / ll) * ff;
+		}
+
+		//
 		// going forward the target
 
 		const dx = runner.target[0] - p[0];

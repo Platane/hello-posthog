@@ -1,5 +1,9 @@
 import { mat4 } from "gl-matrix";
-import { deriveViewMatrix, stepCameraWobble } from "./logic/camera";
+import {
+	deriveViewMatrix,
+	stepCameraWobble,
+	stepPointerOnGround,
+} from "./logic/camera";
 import { computeFinalPlacement } from "./logic/computeFinalPlacement";
 import { stepCrowd, stepRunnerLogic } from "./logic/crowd";
 import { stepProgress } from "./logic/progress";
@@ -76,6 +80,8 @@ createSpriteAtlas().then((res) => {
 
 	const loop = () => {
 		state.time++;
+
+		stepPointerOnGround(state);
 
 		stepCrowd(state);
 		stepRunnerLogic(state, res.animationIndex);

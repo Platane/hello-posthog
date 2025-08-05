@@ -1,4 +1,4 @@
-import { mat4, quat, quat2, vec2, vec3 } from "gl-matrix";
+import { mat4, quat, vec3 } from "gl-matrix";
 import type { AnimationIndex, Box } from "../sprites";
 import { State } from "./state";
 
@@ -38,16 +38,31 @@ export const deriveSprites = (
 
 	// origin
 	{
+		// const tr = state.objectTransforms[i];
+		// vec3.set(s, 0.5, 0.5, 0.5);
+		// mat4.fromScaling(tr, s);
+		// const [min, max] = coords[animationIndex.square][0];
+		// state.spriteBoxes[i * 4 + 0] = min[0];
+		// state.spriteBoxes[i * 4 + 1] = min[1];
+		// state.spriteBoxes[i * 4 + 2] = max[0];
+		// state.spriteBoxes[i * 4 + 3] = max[1];
+		// state.hues[i] = 0;
+		// i++;
+	}
+
+	// ground
+	{
 		const tr = state.objectTransforms[i];
-		vec3.set(s, 0.5, 0.5, 0.5);
-		mat4.fromScaling(tr, s);
-		const [min, max] = coords[animationIndex.square][0];
+		vec3.set(v, state.pointerOnGround[0], state.pointerOnGround[1], 0);
+		mat4.fromTranslation(tr, v);
+		mat4.scale(tr, tr, s);
+		const [min, max] = coords[animationIndex.shadow][0];
 		state.spriteBoxes[i * 4 + 0] = min[0];
 		state.spriteBoxes[i * 4 + 1] = min[1];
 		state.spriteBoxes[i * 4 + 2] = max[0];
 		state.spriteBoxes[i * 4 + 3] = max[1];
 
-		state.hues[i] = 0;
+		state.hues[i] = 0.5;
 
 		i++;
 	}

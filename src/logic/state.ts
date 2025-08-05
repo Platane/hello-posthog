@@ -16,7 +16,8 @@ export const createState = () => {
 
 	return {
 		time: 0,
-		pointer: { x: 0.5, y: 0.5, down: false },
+		pointer: { x: 0.5, y: 0.1, down: false },
+		pointerOnGround: [0, 0] as vec2,
 		zoom: 0.9,
 
 		worldSize: [1, 1] as vec2,
