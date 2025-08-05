@@ -41,7 +41,7 @@ export const deriveSprites = (
 		// const tr = state.objectTransforms[i];
 		// vec3.set(s, 0.5, 0.5, 0.5);
 		// mat4.fromScaling(tr, s);
-		// const [min, max] = coords[animationIndex.square][0];
+		// const [min, max] = coords[animationIndex.shadow][0];
 		// state.spriteBoxes[i * 4 + 0] = min[0];
 		// state.spriteBoxes[i * 4 + 1] = min[1];
 		// state.spriteBoxes[i * 4 + 2] = max[0];
