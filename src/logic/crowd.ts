@@ -114,10 +114,10 @@ export const stepCrowd = (state: State) => {
 			const dx = p1[0] - p2[0];
 			const dy = p1[1] - p2[1];
 
-			// const lSq = dx * dx + dy * dy;
-			// if (lSq > 3 * 3) continue;
+			const lSq = dx * dx + dy * dy;
+			if (lSq > 5 * 5) continue;
+			const l = Math.sqrt(lSq) + 0.00001; // to avoid division by zero
 
-			const l = Math.hypot(dx, dy) + 0.00001; // to avoid division by zero
 			const F_repulsion = 0.007;
 			const lc = l + 0.1;
 			const f = F_repulsion / (lc * lc);
