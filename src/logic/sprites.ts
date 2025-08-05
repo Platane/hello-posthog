@@ -15,21 +15,21 @@ export const deriveSprites = (
 	let i = 0;
 
 	// shadows
-	vec3.set(s, 0.6, 0.6, 0.6);
-	quat.identity(q);
-	for (const runner of state.runners) {
-		const tr = state.objectTransforms[i];
-		vec3.set(v, runner.position[0] + 0.1, runner.position[1], -0.84 + i / 1000);
-		mat4.fromRotationTranslationScale(tr, q, v, s);
+	// vec3.set(s, 0.6, 0.6, 0.6);
+	// quat.identity(q);
+	// for (const runner of state.runners) {
+	// 	const tr = state.objectTransforms[i];
+	// 	vec3.set(v, runner.position[0] + 0.1, runner.position[1], -0.84 + i / 1000);
+	// 	mat4.fromRotationTranslationScale(tr, q, v, s);
 
-		const [min, max] = coords[animationIndex.shadow][0];
-		state.spriteBoxes[i * 4 + 0] = min[0];
-		state.spriteBoxes[i * 4 + 1] = min[1];
-		state.spriteBoxes[i * 4 + 2] = max[0];
-		state.spriteBoxes[i * 4 + 3] = max[1];
+	// 	const [min, max] = coords[animationIndex.shadow][0];
+	// 	state.spriteBoxes[i * 4 + 0] = min[0];
+	// 	state.spriteBoxes[i * 4 + 1] = min[1];
+	// 	state.spriteBoxes[i * 4 + 2] = max[0];
+	// 	state.spriteBoxes[i * 4 + 3] = max[1];
 
-		i++;
-	}
+	// 	i++;
+	// }
 
 	// characters
 	for (const runner of state.runners) {

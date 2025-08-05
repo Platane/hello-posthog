@@ -2,11 +2,11 @@ import { mat4, vec3 } from "gl-matrix";
 import type { State } from "./state";
 
 export const stepCameraWobble = (state: State) => {
-	const l = 12;
+	const l = 80;
 
 	state.camera.eye[0] = 0 + (state.pointer.x - 0.5) * 2;
 	state.camera.eye[1] = l;
-	state.camera.eye[2] = l + -(state.pointer.y - 0.5) * 2;
+	state.camera.eye[2] = l * 0.5 + -(state.pointer.y - 0.5) * 2;
 };
 
 const zero = [0, 0, 0] as vec3;

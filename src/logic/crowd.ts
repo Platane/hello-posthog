@@ -2,7 +2,7 @@ import { mat4 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 import type { State } from "./state";
 
-export const SPEED = 0.04;
+export const SPEED = 0.4;
 
 export const stepCrowd = (state: State, animationIndex: AnimationIndex) => {
 	for (const runner of state.runners) {
@@ -19,10 +19,19 @@ export const stepCrowd = (state: State, animationIndex: AnimationIndex) => {
 
 		const l = Math.hypot(dx, dy);
 
-		if (l < SPEED * 5) {
-			const A = 10;
-			runner.target[0] = (Math.random() - 0.5) * A;
-			runner.target[1] = (Math.random() - 0.5) * A;
+		if (l < SPEED) {
+			runner.randomTargetCount--;
+			if (runner.randomTargetCount < 0) {
+				runner.animationIndex = animationIndex.jump;
+				runner.animationSpeed = 3;
+			} else if (runner.randomTargetCount > 0) {
+				const A = 20;
+				runner.target[0] = (Math.random() - 0.5) * A;
+				runner.target[1] = (Math.random() - 0.5) * A;
+			} else {
+				runner.target[0] = runner.finalTarget[0];
+				runner.target[1] = runner.finalTarget[1];
+			}
 
 			continue;
 		}

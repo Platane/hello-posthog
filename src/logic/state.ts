@@ -1,7 +1,7 @@
 import { mat4, vec2, type vec3 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 
-const MAX_ENTITIES = 512;
+const MAX_ENTITIES = 10_000;
 
 export const createState = () => {
 	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
@@ -31,6 +31,8 @@ export const createState = () => {
 			velocity: vec2;
 			direction: vec2;
 			target: vec2;
+			finalTarget: vec2;
+			randomTargetCount: number;
 			animationIndex: number;
 			animationOffset: number;
 			animationSpeed: number;
@@ -55,7 +57,7 @@ export const setInitialState = (
 	];
 	const accessoriesIndex2 = [animationIndex.glasses, animationIndex.sunglasses];
 
-	const N = 50;
+	const N = 400;
 	for (let i = N; i--; ) {
 		const accessories: number[] = [];
 
@@ -80,6 +82,8 @@ export const setInitialState = (
 			animationOffset: Math.floor(Math.random() * 10),
 			animationSpeed: 2,
 			accessories,
+			finalTarget: [0, 0],
+			randomTargetCount: 4,
 		});
 	}
 };

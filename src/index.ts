@@ -1,5 +1,6 @@
 import { mat4 } from "gl-matrix";
 import { deriveViewMatrix, stepCameraWobble } from "./logic/camera";
+import { computeFinalPlacement } from "./logic/computeFinalPlacement";
 import { stepCrowd } from "./logic/crowd";
 import { deriveSprites } from "./logic/sprites";
 import { createState, setInitialState } from "./logic/state";
@@ -30,10 +31,11 @@ const resize = () => {
 
 	gl.viewport(0, 0, canvas.width, canvas.height);
 
+	const aspect = canvas.width / canvas.height;
 	mat4.perspective(
 		state.projectionMatrix,
-		Math.PI / 4,
-		canvas.width / canvas.height,
+		Math.PI / 4 / aspect,
+		aspect,
 		0.1,
 		2000,
 	);
@@ -52,11 +54,11 @@ const sets = [set];
 createSpriteAtlas().then((res) => {
 	renderer.updateSet(set, { colorTexture: res.texture });
 	setInitialState(state, res.animationIndex);
+	computeFinalPlacement(state, res.animationIndex, "Hello");
 
 	const loop = () => {
 		state.time++;
 
-		
 		stepCrowd(state, res.animationIndex);
 		stepCameraWobble(state);
 

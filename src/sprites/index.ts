@@ -7,6 +7,10 @@ const imageUrls = {
 		`posthog/frontend/public/hedgehog/sprites/skins/default/wave.png`,
 		import.meta.url,
 	),
+	jump: new URL(
+		`posthog/frontend/public/hedgehog/sprites/skins/default/jump.png`,
+		import.meta.url,
+	),
 	cap: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/cap.png`,
 		import.meta.url,
@@ -96,7 +100,7 @@ const createShadow = () => {
 	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
 	const ctx = canvas.getContext("2d");
 
-	ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+	ctx.fillStyle = "rgba(160, 160, 160, 1)";
 	ctx.beginPath();
 	ctx.arc(
 		SOURCE_SIZE / 2,
