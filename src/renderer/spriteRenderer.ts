@@ -47,6 +47,7 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	const a_position = gl.getAttribLocation(program, "a_position");
 	const a_texCoord = gl.getAttribLocation(program, "a_texCoord");
 	const a_spriteBox = gl.getAttribLocation(program, "a_spriteBox");
+	const a_hue = gl.getAttribLocation(program, "a_hue");
 	const a_objectMatrix1 = gl.getAttribLocation(program, "a_objectMatrix1");
 	const a_objectMatrix2 = gl.getAttribLocation(program, "a_objectMatrix2");
 	const a_objectMatrix3 = gl.getAttribLocation(program, "a_objectMatrix3");
@@ -84,12 +85,19 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 		gl.vertexAttribPointer(a_spriteBox, 4, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(a_spriteBox, 1);
 
+		const hueBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, hueBuffer);
+		gl.enableVertexAttribArray(a_hue);
+		gl.vertexAttribPointer(a_hue, 1, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(a_hue, 1);
+
 		const colorTexture = gl.createTexture();
 
 		return {
 			vao,
 			objectMatricesBuffer,
 			spriteBoxBuffer,
+			hueBuffer,
 			colorTexture,
 			numInstances: 0,
 		};
@@ -98,11 +106,13 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 	const updateSet = (
 		set: ReturnType<typeof createSet>,
 		{
+			hues,
 			objectMatrices,
 			spriteBoxes,
 			colorTexture,
 			numInstances,
 		}: {
+			hues?: Float32Array;
 			objectMatrices?: Float32Array;
 			spriteBoxes?: Float32Array;
 			colorTexture?: TexImageSource;
@@ -130,6 +140,17 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 				gl.DYNAMIC_DRAW,
 				0,
 				set.numInstances * 4,
+			);
+		}
+
+		if (hues) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, set.hueBuffer);
+			gl.bufferData(
+				gl.ARRAY_BUFFER,
+				hues,
+				gl.DYNAMIC_DRAW,
+				0,
+				set.numInstances,
 			);
 		}
 

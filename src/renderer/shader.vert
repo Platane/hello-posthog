@@ -9,6 +9,7 @@ in vec4 a_objectMatrix2;
 in vec4 a_objectMatrix3;
 in vec4 a_objectMatrix4;
 in vec4 a_spriteBox;
+in float a_hue;
 
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
@@ -16,6 +17,7 @@ uniform mat4 u_projectionMatrix;
 
 out vec2 v_texCoord;
 out vec4 v_color;
+out float v_hue;
 
 
 void main() {
@@ -29,4 +31,5 @@ void main() {
 
     gl_Position = u_projectionMatrix * u_viewMatrix * a_objectMatrix * p;
     v_texCoord = mix(a_spriteBox.xy, a_spriteBox.zw, a_texCoord);
+    v_hue = a_hue;
 }

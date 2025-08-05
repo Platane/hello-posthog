@@ -6,7 +6,7 @@ export const computeFinalPlacement = (
 	animationIndex: AnimationIndex,
 	text: string,
 ) => {
-	const canvas = new OffscreenCanvas(512, 128);
+	const canvas = new OffscreenCanvas(1024, 256);
 	// const canvas = document.createElement("canvas");
 	// document.body.appendChild(canvas);
 	// canvas.style.width = "512px";
@@ -38,23 +38,34 @@ export const computeFinalPlacement = (
 
 	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+	const cells: { x: number; y: number }[] = [];
+	for (let x = imageData.width; x--; )
+		for (let y = imageData.height; y--; )
+			if (imageData.data[(x + y * imageData.width) * 4 + 3] > 10)
+				cells.push({
+					x: -(x - imageData.width * 0.5),
+					y: y - imageData.height * 0.5,
+				});
+
+	const density = 0.1; // in entity per world unit square
+
+	// density = N_Runner / area
+	// density = N_Runner / ( N_cells * cellSize² )
+
+	// const s = Math.sqrt(game.runners.length / (density * cells.length));
+
+	const s = 30;
+
+	const k = s / imageData.height;
+
 	for (const runner of game.runners) {
-		runner.randomTargetCount = 1;
+		const { x, y } = cells[Math.floor(Math.random() * cells.length)];
 
-		let x = 0;
-		let y = 0;
-
-		while (imageData.data[(x + y * imageData.width) * 4 + 3] <= 50) {
-			x = Math.floor(Math.random() * imageData.width);
-			y = Math.floor(Math.random() * imageData.height);
-		}
-
-		const k = 20 / imageData.height;
-		runner.finalTarget[0] = -(x - imageData.width * 0.5) * k;
-		runner.finalTarget[1] = (y - imageData.height * 0.5) * k;
-		runner.randomTargetCount = 2;
+		runner.finalTarget[0] = (x + Math.random()) * k;
+		runner.finalTarget[1] = (y + Math.random()) * k;
+		runner.randomTargetCount = 0;
 
 		runner.animationIndex = animationIndex.walk;
-		runner.animationSpeed = 3;
+		runner.animationFrameDuration = 3;
 	}
 };

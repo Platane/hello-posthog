@@ -21,7 +21,7 @@ export const stepRunnerLogic = (
 				// runner.randomTargetCount = -1;
 
 				runner.animationIndex = animationIndex.jump;
-				runner.animationSpeed = 4;
+				runner.animationFrameDuration = 4;
 			} else if (runner.randomTargetCount > 0) {
 				(runner as Runner).goal = goal.goToTarget;
 
@@ -32,10 +32,10 @@ export const stepRunnerLogic = (
 				runner.randomTargetCount--;
 
 				runner.animationIndex = animationIndex.walk;
-				runner.animationSpeed = 2;
+				runner.animationFrameDuration = 2;
 			} else {
 				runner.animationIndex = animationIndex.jump;
-				runner.animationSpeed = 3;
+				runner.animationFrameDuration = 3;
 			}
 		}
 	}
@@ -98,13 +98,14 @@ export const stepCrowd = (state: State) => {
 
 			const dx = p1[0] - p2[0];
 			const dy = p1[1] - p2[1];
-			// const lSq = dx * dx + dy * dy;
-			// if (lSq > 4 * 4) continue;
-			// const l = Math.sqrt(lSq);
 
-			const l = Math.hypot(dx, dy) + 0.0001;
+			// const lSq = dx * dx + dy * dy;
+			// if (lSq > 3 * 3) continue;
+
+			const l = Math.hypot(dx, dy) + 0.00001; // to avoid division by zero
 			const F_repulsion = 0.007;
-			const f = F_repulsion / ((l + 0.01) * (l + 0.01));
+			const lc = l + 0.1;
+			const f = F_repulsion / (lc * lc);
 			a1[0] += (dx / l) * f;
 			a1[1] += (dy / l) * f;
 

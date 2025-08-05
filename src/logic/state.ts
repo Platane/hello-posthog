@@ -9,6 +9,7 @@ export const createState = () => {
 		objectMatrices.subarray(i * 16, (i + 1) * 16),
 	);
 	const spriteBoxes = new Float32Array(MAX_ENTITIES * 4);
+	const hues = new Float32Array(MAX_ENTITIES);
 
 	const viewMatrix = mat4.create() as Float32Array;
 	const projectionMatrix = mat4.create() as Float32Array;
@@ -23,6 +24,7 @@ export const createState = () => {
 		projectionMatrix,
 
 		objectMatrices,
+		hues,
 		spriteBoxes,
 		objectTransforms,
 		numInstances: 0,
@@ -54,9 +56,10 @@ type WithFinalGoal = {
 type Animated = {
 	animationIndex: number;
 	animationOffset: number;
-	animationSpeed: number;
+	animationFrameDuration: number;
 };
 export type Runner = {
+	hue: number;
 	position: vec2;
 	velocity: vec2;
 	spriteDirection: 1 | -1;
@@ -103,12 +106,13 @@ export const setInitialState = (
 			velocity: [0, 0],
 			animationIndex: animationIndex.walk,
 			animationOffset: Math.floor(Math.random() * 10),
-			animationSpeed: 2,
+			animationFrameDuration: 2,
 			accessories,
 			finalTarget: [0, 0],
 			randomTargetCount: 4,
 			goal: goal.idle,
 			spriteDirection: 1,
+			hue: Math.random(),
 			...{ target: [0, 0] },
 		});
 	}

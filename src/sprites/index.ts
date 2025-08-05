@@ -113,6 +113,17 @@ const createShadow = () => {
 
 	return { image: canvas, name: "shadow", spriteCount: 1 };
 };
+const createBox = () => {
+	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
+	const ctx = canvas.getContext("2d");
+
+	ctx.fillStyle = "rgba(160, 0, 160, 1)";
+	ctx.beginPath();
+	ctx.rect(0, 0, SOURCE_SIZE, SOURCE_SIZE);
+	ctx.fill();
+
+	return { image: canvas, name: "square", spriteCount: 1 };
+};
 
 export const createSpriteAtlas = async () => {
 	const images = await Promise.all(
@@ -129,7 +140,7 @@ export const createSpriteAtlas = async () => {
 		}),
 	);
 
-	images.push(createShadow());
+	images.push(createShadow(), createBox());
 
 	const totalSpriteCount = images.reduce(
 		(sum, { spriteCount }) => sum + spriteCount,
@@ -195,6 +206,7 @@ export const createSpriteAtlas = async () => {
 
 export type AnimationIndex = Record<keyof typeof imageUrls, number> & {
 	shadow: number;
+	square: number;
 };
 
 const SOURCE_SIZE = 80;

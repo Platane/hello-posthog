@@ -9,7 +9,7 @@ export const stepProgress = (state: State) => {
 	);
 	maxProgress = Math.max(maxProgress, p);
 
-	console.log(p / maxProgress);
+	// console.log(p / maxProgress);
 };
 
 const zero = [0, 0, 0] as vec3;
