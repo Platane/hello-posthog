@@ -78,27 +78,29 @@ export const setInitialState = (
 	animationIndex: AnimationIndex,
 	entityCount: number,
 ) => {
-	const accessoriesIndex1 = [
+	const hats = [
 		animationIndex.cap,
 		animationIndex.chef,
 		animationIndex.cowboy,
 		animationIndex.tophat,
 		animationIndex.party,
 		animationIndex.pineapple,
+		animationIndex.beret,
+		animationIndex.flag,
+		animationIndex.graduation,
 	];
-	const accessoriesIndex2 = [animationIndex.glasses, animationIndex.sunglasses];
+	const faceAccessories = [
+		animationIndex.glasses,
+		animationIndex.sunglasses,
+		animationIndex.eyepatch,
+	];
 
 	for (let i = entityCount; i--; ) {
 		const accessories: number[] = [];
 
-		const a1 =
-			accessoriesIndex1[
-				Math.floor(Math.random() * (accessoriesIndex1.length + 2))
-			];
+		const a1 = hats[Math.floor(Math.random() * (hats.length + 2))];
 		const a2 =
-			accessoriesIndex2[
-				Math.floor(Math.random() * (accessoriesIndex2.length + 6))
-			];
+			faceAccessories[Math.floor(Math.random() * (faceAccessories.length + 6))];
 
 		if (a1 !== undefined) accessories.push(a1);
 		if (a2 !== undefined) accessories.push(a2);

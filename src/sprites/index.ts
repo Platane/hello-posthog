@@ -43,6 +43,26 @@ const imageUrls = {
 		`posthog/frontend/public/hedgehog/sprites/accessories/chef.png`,
 		import.meta.url,
 	),
+	parrot: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/parrot.png`,
+		import.meta.url,
+	),
+	beret: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/beret.png`,
+		import.meta.url,
+	),
+	eyepatch: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/eyepatch.png`,
+		import.meta.url,
+	),
+	flag: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/flag.png`,
+		import.meta.url,
+	),
+	graduation: new URL(
+		`posthog/frontend/public/hedgehog/sprites/accessories/graduation.png`,
+		import.meta.url,
+	),
 };
 
 /**
