@@ -13,8 +13,6 @@ const gl = canvas.getContext("webgl2")!;
 const dpr = window.devicePixelRatio ?? 1;
 
 gl.disable(gl.CULL_FACE);
-// gl.enable(gl.CULL_FACE);
-// gl.cullFace(gl.BACK);
 
 gl.enable(gl.DEPTH_TEST);
 gl.depthFunc(gl.LESS);
@@ -49,10 +47,17 @@ window.addEventListener("mousemove", (e) => {
 	state.pointer.x = e.clientX / window.innerWidth;
 	state.pointer.y = e.clientY / window.innerHeight;
 });
+window.addEventListener("pointermove", (e) => {
+	state.pointer.x = e.clientX / window.innerWidth;
+	state.pointer.y = e.clientY / window.innerHeight;
+});
 window.addEventListener(
 	"wheel",
 	(e) => {
-		state.zoom += e.deltaY;
+		state.zoom = Math.min(
+			1,
+			Math.max(0, state.zoom + e.deltaY / window.innerHeight / 3),
+		);
 	},
 	{ passive: true },
 );
@@ -61,13 +66,13 @@ const set = renderer.createSet();
 const sets = [set];
 
 createSpriteAtlas().then((res) => {
+	const searchParams = new URL(location.href).searchParams;
+	const message = searchParams.get("message") || "Hello";
+	const entityCount = parseInt(searchParams.get("n")) || 600;
+
 	renderer.updateSet(set, { colorTexture: res.texture });
-	setInitialState(state, res.animationIndex);
-	computeFinalPlacement(
-		state,
-		res.animationIndex,
-		new URL(location.href).searchParams.get("message") || "Hello",
-	);
+	setInitialState(state, res.animationIndex, entityCount);
+	computeFinalPlacement(state, res.animationIndex, message);
 
 	const loop = () => {
 		state.time++;

@@ -47,25 +47,30 @@ export const computeFinalPlacement = (
 					y: y - imageData.height * 0.5,
 				});
 
-	const density = 0.1; // in entity per world unit square
+	const density = 0.5; // in entity per world unit square
 
 	// density = N_Runner / area
 	// density = N_Runner / ( N_cells * cellSize² )
-
-	// const s = Math.sqrt(game.runners.length / (density * cells.length));
-
-	const s = 30;
-
-	const k = s / imageData.height;
+	const s = Math.sqrt(game.runners.length / (density * cells.length));
 
 	for (const runner of game.runners) {
 		const { x, y } = cells[Math.floor(Math.random() * cells.length)];
 
-		runner.finalTarget[0] = (x + Math.random()) * k;
-		runner.finalTarget[1] = (y + Math.random()) * k;
-		runner.randomTargetCount = 0;
+		runner.finalTarget[0] = (x + Math.random()) * s;
+		runner.finalTarget[1] = (y + Math.random()) * s;
+		runner.randomTargetCount = 1;
 
 		runner.animationIndex = animationIndex.walk;
 		runner.animationFrameDuration = 3;
 	}
+
+	let maxX = 0;
+	let maxY = 0;
+	for (const { x, y } of cells) {
+		maxX = Math.max(maxX, (x + 1) * s);
+		maxY = Math.max(maxY, (y + 1) * s);
+	}
+
+	game.worldSize[0] = maxX * 2;
+	game.worldSize[1] = maxY * 2;
 };

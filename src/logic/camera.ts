@@ -4,7 +4,12 @@ import type { State } from "./state";
 export const stepCameraWobble = (state: State) => {
 	const phi = Math.PI / 7 + ((0.5 - state.pointer.y) * Math.PI) / 16;
 	const theta = (state.pointer.x - 0.5) * 0.4;
-	const radius = 50;
+
+	const minRadius = 12;
+	const maxRadius = state.worldSize[0] * 1.4;
+
+	const radius =
+		minRadius + (maxRadius - minRadius) * (state.zoom * state.zoom);
 
 	state.camera.eye[0] = radius * Math.sin(theta) * Math.cos(phi);
 	state.camera.eye[1] = radius * Math.cos(theta) * Math.cos(phi);

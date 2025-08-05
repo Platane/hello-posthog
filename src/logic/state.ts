@@ -1,7 +1,7 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 
-export const MAX_ENTITIES = 10_000;
+export const MAX_ENTITIES = 8_000;
 
 export const createState = () => {
 	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
@@ -17,7 +17,9 @@ export const createState = () => {
 	return {
 		time: 0,
 		pointer: { x: 0.5, y: 0.5, down: false },
-		zoom: 800,
+		zoom: 0.9,
+
+		worldSize: [1, 1] as vec2,
 
 		camera: { eye: [0, 4, 4] as vec3 },
 		viewMatrix,
@@ -74,6 +76,7 @@ export type State = ReturnType<typeof createState>;
 export const setInitialState = (
 	state: State,
 	animationIndex: AnimationIndex,
+	entityCount: number,
 ) => {
 	const accessoriesIndex1 = [
 		animationIndex.cap,
@@ -85,8 +88,7 @@ export const setInitialState = (
 	];
 	const accessoriesIndex2 = [animationIndex.glasses, animationIndex.sunglasses];
 
-	const N = 400;
-	for (let i = N; i--; ) {
+	for (let i = entityCount; i--; ) {
 		const accessories: number[] = [];
 
 		const a1 =
@@ -102,7 +104,10 @@ export const setInitialState = (
 		if (a2 !== undefined) accessories.push(a2);
 
 		state.runners.push({
-			position: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
+			position: [
+				(Math.random() * 2 - 1) * 20 - 40,
+				(Math.random() * 2 - 1) * 20,
+			],
 			velocity: [0, 0],
 			animationIndex: animationIndex.walk,
 			animationOffset: Math.floor(Math.random() * 10),

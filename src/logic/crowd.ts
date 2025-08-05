@@ -25,7 +25,7 @@ export const stepRunnerLogic = (
 			} else if (runner.randomTargetCount > 0) {
 				(runner as Runner).goal = goal.goToTarget;
 
-				const A = 16 + Math.random() * 16;
+				const A = (((1 + Math.random()) / 2) * state.worldSize[0]) / 2;
 				const a = Math.random() * Math.PI * 2;
 				vec2.set((runner as any).target, Math.sin(a) * A, Math.cos(a) * A);
 
