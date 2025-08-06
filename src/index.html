@@ -1,30 +1,39 @@
 <!DOCTYPE html>
 <html >
   <head>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
     <title>hello posthog</title>
     <script type="module" src="./index.ts"></script>
     <style>
+    html{
+        touch-action: none;
+    }
     body{
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        align-items: stretch;
-        justify-content: stretch;
     }
     #canvas{
+        position: fixed;
         width: 100%;
-        min-height: 100%;
+        height: 100%;
     }
     #github-link{
         position: absolute;
         right:5px;
         bottom:5px;
     }
+    #log{
+        position: absolute;
+        right:5px;
+        top:5px;
+        left:5px;
+    }
     </style>
   </head>
   <body>
       <canvas id="canvas"></canvas>
       <a id="github-link" href="https://github.com/Platane/hello-posthog">github</a>
+      <pre id="log"></pre>
   </body>
 </html>

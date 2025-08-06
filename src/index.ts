@@ -9,6 +9,7 @@ import { stepCrowd, stepRunnerLogic } from "./logic/crowd";
 import { stepProgress } from "./logic/progress";
 import { deriveSprites } from "./logic/sprites";
 import { createState, setInitialState } from "./logic/state";
+import { attachUserEvent } from "./logic/userEvent";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
 import { createSpriteAtlas } from "./sprites";
 
@@ -27,7 +28,6 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 const renderer = createSpriteRenderer(gl);
 
 const state = createState();
-
 const resize = () => {
 	canvas.width = canvas.clientWidth * dpr;
 	canvas.height = canvas.clientHeight * dpr;
@@ -46,25 +46,7 @@ const resize = () => {
 resize();
 
 window.addEventListener("resize", resize);
-
-window.addEventListener("mousemove", (e) => {
-	state.pointer.x = e.clientX / window.innerWidth;
-	state.pointer.y = e.clientY / window.innerHeight;
-});
-window.addEventListener("pointermove", (e) => {
-	state.pointer.x = e.clientX / window.innerWidth;
-	state.pointer.y = e.clientY / window.innerHeight;
-});
-window.addEventListener(
-	"wheel",
-	(e) => {
-		state.zoom = Math.min(
-			1,
-			Math.max(0, state.zoom + e.deltaY / window.innerHeight / 3),
-		);
-	},
-	{ passive: true },
-);
+attachUserEvent(state);
 
 const set = renderer.createSet();
 const sets = [set];
