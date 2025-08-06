@@ -5,17 +5,22 @@ import {
 	stepPointerOnGround,
 } from "./logic/camera";
 import { computeFinalPlacement } from "./logic/computeFinalPlacement";
-import { stepCrowd, stepRunnerLogic } from "./logic/crowd";
+import { createPhysicStepper, stepRunnerLogic } from "./logic/crowd";
 import { stepProgress } from "./logic/progress";
 import { deriveSprites } from "./logic/sprites";
-import { createState, setInitialState } from "./logic/state";
+import { createState } from "./logic/state";
 import { attachUserEvent } from "./logic/userEvent";
 import { createSpriteRenderer } from "./renderer/spriteRenderer";
 import { createSpriteAtlas } from "./sprites";
 
+const spritePromise = createSpriteAtlas();
+
+const searchParams = new URL(location.href).searchParams;
+const message = searchParams.get("message") || "Hello";
+const runnerCount = parseInt(searchParams.get("n")) || 2000;
+
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const gl = canvas.getContext("webgl2")!;
-const dpr = window.devicePixelRatio ?? 1;
 
 gl.disable(gl.CULL_FACE);
 
@@ -27,50 +32,41 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 const renderer = createSpriteRenderer(gl);
 
-const state = createState();
-const resize = () => {
-	canvas.width = canvas.clientWidth * dpr;
-	canvas.height = canvas.clientHeight * dpr;
-
-	gl.viewport(0, 0, canvas.width, canvas.height);
-
-	const aspect = canvas.width / canvas.height;
-	mat4.perspective(
-		state.projectionMatrix,
-		Math.PI / 4 / aspect,
-		aspect,
-		0.1,
-		2000,
-	);
-};
-resize();
-
-window.addEventListener("resize", resize);
-attachUserEvent(state);
-
 const set = renderer.createSet();
-const sets = [set];
 
-createSpriteAtlas().then((res) => {
-	const searchParams = new URL(location.href).searchParams;
-	const message = searchParams.get("message") || "Hello";
-	const entityCount = parseInt(searchParams.get("n")) || 2000;
+//
+//
 
+const state = createState(runnerCount);
+attachUserEvent(state, canvas, gl);
+window.dispatchEvent(new Event("resize"));
+
+computeFinalPlacement(state, message);
+
+const stepPhysic = createPhysicStepper(runnerCount);
+
+spritePromise.then((res) => {
 	renderer.updateSet(set, { colorTexture: res.texture });
-	setInitialState(state, res.animationIndex, entityCount);
-	computeFinalPlacement(state, res.animationIndex, message);
+
+	gl.useProgram(renderer._internal.program);
+
+	gl.uniform1i(renderer._internal.u_colorTexture, 0);
+	gl.bindVertexArray(set.vao);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, set.colorTexture);
 
 	const loop = () => {
 		state.time++;
 
 		stepPointerOnGround(state);
 
-		stepCrowd(state);
-		stepRunnerLogic(state, res.animationIndex);
+		stepPhysic(state);
+		stepRunnerLogic(state);
 		stepCameraWobble(state);
 		stepProgress(state);
 
-		deriveSprites(state, res.animationIndex, res.coords);
+		deriveSprites(state, res.coords);
 		deriveViewMatrix(state);
 
 		//
@@ -81,7 +77,21 @@ createSpriteAtlas().then((res) => {
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		renderer.draw(state.projectionMatrix, state.viewMatrix, sets);
+		//
+		// usually the API is meant to call renderer.draw(state.projectionMatrix,state.viewMatrix,[set])
+		// but since there is only oone program let's save some gl instructions
+		gl.uniformMatrix4fv(
+			renderer._internal.u_viewMatrix,
+			false,
+			state.viewMatrix,
+		);
+		gl.uniformMatrix4fv(
+			renderer._internal.u_projectionMatrix,
+			false,
+			state.projectionMatrix,
+		);
+
+		gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, set.numInstances);
 
 		//
 

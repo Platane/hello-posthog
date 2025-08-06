@@ -1,11 +1,7 @@
-import type { AnimationIndex } from "../sprites";
+import { sprite } from "../sprites/type";
 import type { State } from "./state";
 
-export const computeFinalPlacement = (
-	game: State,
-	animationIndex: AnimationIndex,
-	text: string,
-) => {
+export const computeFinalPlacement = (game: State, text: string) => {
 	const canvas = new OffscreenCanvas(1024, 256);
 	// const canvas = document.createElement("canvas");
 	// document.body.appendChild(canvas);
@@ -60,7 +56,7 @@ export const computeFinalPlacement = (
 		runner.finalTarget[1] = (y + Math.random()) * s;
 		runner.randomTargetCount = 1;
 
-		runner.animationIndex = animationIndex.walk;
+		runner.animationIndex = sprite.walk;
 		runner.animationFrameDuration = 3;
 	}
 

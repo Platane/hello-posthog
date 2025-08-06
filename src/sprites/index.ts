@@ -1,69 +1,92 @@
+import { sprite } from "./type";
+
+const SOURCE_SIZE = 80;
+
+const createShadowSpriteSheet = () => {
+	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
+	const ctx = canvas.getContext("2d");
+
+	ctx.fillStyle = "rgba(160, 160, 160, 1)";
+	ctx.beginPath();
+	ctx.arc(
+		SOURCE_SIZE / 2,
+		SOURCE_SIZE / 2,
+		(SOURCE_SIZE / 2) * 0.9,
+		0,
+		Math.PI * 2,
+	);
+	ctx.fill();
+
+	return canvas;
+};
+
 const imageUrls = {
-	walk: new URL(
+	[sprite.walk]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/skins/default/walk.png`,
 		import.meta.url,
 	),
-	wave: new URL(
+	[sprite.wave]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/skins/default/wave.png`,
 		import.meta.url,
 	),
-	jump: new URL(
+	[sprite.jump]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/skins/default/jump.png`,
 		import.meta.url,
 	),
-	cap: new URL(
+	[sprite.cap]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/cap.png`,
 		import.meta.url,
 	),
-	cowboy: new URL(
+	[sprite.cowboy]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/cowboy.png`,
 		import.meta.url,
 	),
-	sunglasses: new URL(
+	[sprite.sunglasses]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/sunglasses.png`,
 		import.meta.url,
 	),
-	glasses: new URL(
+	[sprite.glasses]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/glasses.png`,
 		import.meta.url,
 	),
-	tophat: new URL(
+	[sprite.tophat]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/tophat.png`,
 		import.meta.url,
 	),
-	pineapple: new URL(
+	[sprite.pineapple]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/pineapple.png`,
 		import.meta.url,
 	),
-	party: new URL(
+	[sprite.party]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/party.png`,
 		import.meta.url,
 	),
-	chef: new URL(
+	[sprite.chef]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/chef.png`,
 		import.meta.url,
 	),
-	parrot: new URL(
+	[sprite.parrot]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/parrot.png`,
 		import.meta.url,
 	),
-	beret: new URL(
+	[sprite.beret]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/beret.png`,
 		import.meta.url,
 	),
-	eyepatch: new URL(
+	[sprite.eyepatch]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/eyepatch.png`,
 		import.meta.url,
 	),
-	flag: new URL(
+	[sprite.flag]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/flag.png`,
 		import.meta.url,
 	),
-	graduation: new URL(
+	[sprite.graduation]: new URL(
 		`posthog/frontend/public/hedgehog/sprites/accessories/graduation.png`,
 		import.meta.url,
 	),
-};
+	[sprite.shadow]: createShadowSpriteSheet(),
+} satisfies Record<sprite, unknown>;
 
 /**
  * count how many sprite the sprite sheet contains:
@@ -116,30 +139,18 @@ const countSprites = (() => {
 
 export type Box = [[number, number], [number, number]];
 
-const createShadow = () => {
-	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
-	const ctx = canvas.getContext("2d");
-
-	ctx.fillStyle = "rgba(160, 160, 160, 1)";
-	ctx.beginPath();
-	ctx.arc(
-		SOURCE_SIZE / 2,
-		SOURCE_SIZE / 2,
-		(SOURCE_SIZE / 2) * 0.9,
-		0,
-		Math.PI * 2,
-	);
-	ctx.fill();
-
-	return { image: canvas, name: "shadow", spriteCount: 1 };
-};
-
 export const createSpriteAtlas = async () => {
 	const images = await Promise.all(
-		Object.entries(imageUrls).map(async ([name, url]) => {
-			const response = await fetch(url);
-			const blob = await response.blob();
-			const image = await createImageBitmap(blob);
+		Object.entries(imageUrls).map(async ([name, urlOrImage]) => {
+			let image: ImageBitmap | OffscreenCanvas | HTMLCanvasElement;
+			if (typeof urlOrImage === "string" || urlOrImage instanceof URL) {
+				const response = await fetch(urlOrImage);
+				const blob = await response.blob();
+				image = await createImageBitmap(blob);
+			} else {
+				image = urlOrImage;
+			}
+
 			const spriteCount = countSprites(image);
 			return {
 				image: image as ImageBitmap | OffscreenCanvas,
@@ -148,8 +159,6 @@ export const createSpriteAtlas = async () => {
 			};
 		}),
 	);
-
-	images.push(createShadow());
 
 	const totalSpriteCount = images.reduce(
 		(sum, { spriteCount }) => sum + spriteCount,
@@ -173,17 +182,13 @@ export const createSpriteAtlas = async () => {
 
 	const ctx = canvas.getContext("2d");
 
-	const coords: Box[][] = [];
-
-	const animationIndex = {} as AnimationIndex;
+	const coords = {} as Record<sprite, Box[]>;
 
 	let dx = 0;
 	let dy = 0;
 	for (const { image, name, spriteCount } of images) {
-		animationIndex[name] = coords.length;
-
-		const boxes = [];
-		coords.push(boxes);
+		const boxes: Box[] = [];
+		coords[name] = boxes;
 
 		let sy = 0;
 		let sx = 0;
@@ -218,11 +223,5 @@ export const createSpriteAtlas = async () => {
 		}
 	}
 
-	return { texture: canvas, animationIndex, coords };
+	return { texture: canvas, coords };
 };
-
-export type AnimationIndex = Record<keyof typeof imageUrls, number> & {
-	shadow: number;
-};
-
-const SOURCE_SIZE = 80;

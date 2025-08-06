@@ -1,15 +1,12 @@
 import { mat4, quat, vec3 } from "gl-matrix";
-import type { AnimationIndex, Box } from "../sprites";
+import type { Box } from "../sprites";
+import { sprite } from "../sprites/type";
 import { State } from "./state";
 
 const v = vec3.create();
 const q = quat.create();
 const s = vec3.create();
-export const deriveSprites = (
-	state: State,
-	animationIndex: AnimationIndex,
-	coords: Box[][],
-) => {
+export const deriveSprites = (state: State, coords: Record<sprite, Box[]>) => {
 	state.runners.sort((a, b) => a.position[1] - b.position[1]);
 
 	let i = 0;
@@ -27,7 +24,7 @@ export const deriveSprites = (
 		);
 		mat4.fromRotationTranslationScale(tr, q, v, s);
 
-		const [min, max] = coords[animationIndex.shadow][0];
+		const [min, max] = coords[sprite.shadow][0];
 		state.spriteBoxes[i * 4 + 0] = min[0];
 		state.spriteBoxes[i * 4 + 1] = min[1];
 		state.spriteBoxes[i * 4 + 2] = max[0];
@@ -41,7 +38,7 @@ export const deriveSprites = (
 		// const tr = state.objectTransforms[i];
 		// vec3.set(s, 0.5, 0.5, 0.5);
 		// mat4.fromScaling(tr, s);
-		// const [min, max] = coords[animationIndex.shadow][0];
+		// const [min, max] = coords[sprite.shadow][0];
 		// state.spriteBoxes[i * 4 + 0] = min[0];
 		// state.spriteBoxes[i * 4 + 1] = min[1];
 		// state.spriteBoxes[i * 4 + 2] = max[0];
@@ -56,7 +53,7 @@ export const deriveSprites = (
 		vec3.set(v, state.pointerOnGround[0], state.pointerOnGround[1], 0);
 		mat4.fromTranslation(tr, v);
 		mat4.scale(tr, tr, s);
-		const [min, max] = coords[animationIndex.shadow][0];
+		const [min, max] = coords[sprite.shadow][0];
 		state.spriteBoxes[i * 4 + 0] = min[0];
 		state.spriteBoxes[i * 4 + 1] = min[1];
 		state.spriteBoxes[i * 4 + 2] = max[0];
@@ -105,7 +102,7 @@ export const deriveSprites = (
 		i++;
 
 		let dy = 0;
-		if (runner.animationIndex === animationIndex.jump) {
+		if (runner.animationIndex === sprite.jump) {
 			dy = Math.sin((t / boxes.length + 0.1) * Math.PI * 2) * 0.05;
 		}
 

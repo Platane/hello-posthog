@@ -1,18 +1,23 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
-import type { AnimationIndex } from "../sprites";
+import { sprite } from "../sprites/type";
 
-export const MAX_ENTITIES = 20_000;
-
-export const createState = () => {
-	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
-	const objectTransforms = Array.from({ length: MAX_ENTITIES }, (_, i) =>
-		objectMatrices.subarray(i * 16, (i + 1) * 16),
-	);
-	const spriteBoxes = new Float32Array(MAX_ENTITIES * 4);
-	const hues = new Float32Array(MAX_ENTITIES);
-
+export const createState = (n: number) => {
 	const viewMatrix = mat4.create() as Float32Array;
 	const projectionMatrix = mat4.create() as Float32Array;
+
+	const runners = generateRunners(n);
+
+	const numInstances = runners.reduce(
+		(sum, r) => sum + r.accessories.length + 1 + 1,
+		3,
+	);
+
+	const objectMatrices = new Float32Array(numInstances * 16);
+	const objectTransforms = Array.from({ length: numInstances }, (_, i) =>
+		objectMatrices.subarray(i * 16, (i + 1) * 16),
+	);
+	const spriteBoxes = new Float32Array(numInstances * 4);
+	const hues = new Float32Array(numInstances);
 
 	return {
 		time: 0,
@@ -32,9 +37,21 @@ export const createState = () => {
 		objectTransforms,
 		numInstances: 0,
 
-		runners: [] as Runner[],
+		runners,
 	};
 };
+
+export type Runner = {
+	hue: number;
+	position: vec2;
+	velocity: vec2;
+	spriteDirection: 1 | -1;
+} & {
+	accessories: number[];
+} & WithGoal &
+	Animated &
+	WithFinalGoal;
+
 export enum goal {
 	idle,
 	resting,
@@ -61,42 +78,30 @@ type Animated = {
 	animationOffset: number;
 	animationFrameDuration: number;
 };
-export type Runner = {
-	hue: number;
-	position: vec2;
-	velocity: vec2;
-	spriteDirection: 1 | -1;
-} & WithGoal &
-	Animated &
-	WithFinalGoal & {
-		accessories: number[];
-	};
 
 export type State = ReturnType<typeof createState>;
 
-export const setInitialState = (
-	state: State,
-	animationIndex: AnimationIndex,
-	entityCount: number,
-) => {
+export const generateRunners = (count: number) => {
 	const hats = [
-		animationIndex.cap,
-		animationIndex.chef,
-		animationIndex.cowboy,
-		animationIndex.tophat,
-		animationIndex.party,
-		animationIndex.pineapple,
-		animationIndex.beret,
-		animationIndex.flag,
-		animationIndex.graduation,
+		sprite.cap,
+		sprite.chef,
+		sprite.cowboy,
+		sprite.tophat,
+		sprite.party,
+		sprite.pineapple,
+		sprite.beret,
+		sprite.flag,
+		sprite.graduation,
 	];
 	const faceAccessories = [
-		animationIndex.glasses,
-		animationIndex.sunglasses,
-		animationIndex.eyepatch,
+		//
+		sprite.glasses,
+		sprite.sunglasses,
+		sprite.eyepatch,
 	];
 
-	for (let i = entityCount; i--; ) {
+	const s = Math.sqrt(count) * 1.6;
+	return Array.from({ length: count }, () => {
 		const accessories: number[] = [];
 
 		const a1 = hats[Math.floor(Math.random() * (hats.length + 2))];
@@ -106,14 +111,13 @@ export const setInitialState = (
 		if (a1 !== undefined) accessories.push(a1);
 		if (a2 !== undefined) accessories.push(a2);
 
-		const k = Math.sqrt(entityCount) * 1.6;
-		state.runners.push({
+		return {
 			position: [
-				(Math.random() * 2 - 1) * k - k * 1.6,
-				(Math.random() * 2 - 1) * k * 0.6,
+				(Math.random() * 2 - 1) * s - s * 1.6,
+				(Math.random() * 2 - 1) * s * 0.6,
 			],
 			velocity: [0, 0],
-			animationIndex: animationIndex.walk,
+			animationIndex: sprite.walk,
 			animationOffset: Math.floor(Math.random() * 10),
 			animationFrameDuration: 2,
 			accessories,
@@ -123,6 +127,6 @@ export const setInitialState = (
 			spriteDirection: 1,
 			hue: Math.random(),
 			...{ target: [0, 0] },
-		});
-	}
+		} as Runner;
+	});
 };

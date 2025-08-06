@@ -178,12 +178,12 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix);
 		gl.uniformMatrix4fv(u_projectionMatrix, false, projectionMatrix);
-		gl.uniform1i(u_colorTexture, 1); // texture index 1
+		gl.uniform1i(u_colorTexture, 0); // texture index 0
 
 		for (const { vao, colorTexture, numInstances } of sets) {
 			gl.bindVertexArray(vao);
 
-			gl.activeTexture(gl.TEXTURE1);
+			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, colorTexture);
 
 			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, numInstances);
@@ -197,5 +197,11 @@ export const createSpriteRenderer = (gl: WebGL2RenderingContext) => {
 		gl.deleteShader(vertexShader);
 	};
 
-	return { draw, createSet, updateSet, dispose };
+	return {
+		draw,
+		createSet,
+		updateSet,
+		dispose,
+		_internal: { program, u_viewMatrix, u_projectionMatrix, u_colorTexture },
+	};
 };
