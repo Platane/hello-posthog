@@ -93,14 +93,6 @@ const imageUrls = {
  * ie which sprite are not transparent in the grid
  */
 const countSprites = (() => {
-	// const canvas = document.createElement("canvas");
-	// canvas.width = 128;
-	// canvas.height = 128;
-	// canvas.style.position = "absolute";
-	// canvas.style.top = "0";
-	// canvas.style.width = "100%";
-	// document.body.appendChild(canvas);
-
 	const canvas = new OffscreenCanvas(128, 128);
 	const ctx = canvas.getContext("2d");
 
