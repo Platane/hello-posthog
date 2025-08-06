@@ -40,6 +40,10 @@
             persistence: 'memory',
             person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
         })
+        posthog.capture('$pageview', {
+            search_params_message: new URL(window.location.href).searchParams.get('message'),
+            search_params_n: new URL(window.location.href).searchParams.get('n')
+        });
     </script>
   </head>
   <body>
