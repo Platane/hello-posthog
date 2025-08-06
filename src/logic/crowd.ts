@@ -1,10 +1,10 @@
 import { mat4, vec2 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
-import { goal, MAX_ENTITIES, Runner, State } from "./state";
+import { goal, MAX_ENTITIES, type Runner, type State } from "./state";
 
 // acceleration array
 const accelerations = Array.from(
-	{ length: MAX_ENTITIES },
+	{ length: Math.floor(MAX_ENTITIES / 2) },
 	() => new Float32Array(2),
 );
 
@@ -42,6 +42,8 @@ export const stepRunnerLogic = (
 };
 
 export const stepCrowd = (state: State) => {
+	grid.reset(state.worldSize[0] * 1.6, state.worldSize[1] * 1.6);
+
 	//
 	// prepare acceleration list
 	for (let i = state.runners.length; i--; ) {
@@ -50,6 +52,10 @@ export const stepCrowd = (state: State) => {
 		const a = accelerations[i];
 		const v = runner.velocity;
 		const p = runner.position;
+
+		//
+		// place in grid
+		grid.push(p[0], p[1], i);
 
 		//
 		// reset acceleration
@@ -103,29 +109,33 @@ export const stepCrowd = (state: State) => {
 
 	//
 	// entities repulsion
-	for (let i = state.runners.length; i--; ) {
-		const a1 = accelerations[i];
-		const p1 = state.runners[i].position;
+	for (const { length, indexes } of grid.cells) {
+		for (let i = length; i--; ) {
+			const i1 = indexes[i];
+			const a1 = accelerations[i1];
+			const p1 = state.runners[i1].position;
 
-		for (let j = i; j--; ) {
-			const a2 = accelerations[j];
-			const p2 = state.runners[j].position;
+			for (let j = i; j--; ) {
+				const i2 = indexes[j];
+				const a2 = accelerations[i2];
+				const p2 = state.runners[i2].position;
 
-			const dx = p1[0] - p2[0];
-			const dy = p1[1] - p2[1];
+				const dx = p1[0] - p2[0];
+				const dy = p1[1] - p2[1];
 
-			const lSq = dx * dx + dy * dy;
-			if (lSq > 5 * 5) continue;
-			const l = Math.sqrt(lSq) + 0.00001; // to avoid division by zero
+				const lSq = dx * dx + dy * dy;
+				if (lSq > 5 * 5) continue;
+				const l = Math.sqrt(lSq) + 0.00001; // to avoid division by zero
 
-			const F_repulsion = 0.007;
-			const lc = l + 0.1;
-			const f = F_repulsion / (lc * lc);
-			a1[0] += (dx / l) * f;
-			a1[1] += (dy / l) * f;
+				const F_repulsion = 0.007;
+				const lc = l + 0.1;
+				const f = F_repulsion / (lc * lc);
+				a1[0] += (dx / l) * f;
+				a1[1] += (dy / l) * f;
 
-			a2[0] -= (dx / l) * f;
-			a2[1] -= (dy / l) * f;
+				a2[0] -= (dx / l) * f;
+				a2[1] -= (dy / l) * f;
+			}
 		}
 	}
 
@@ -145,3 +155,76 @@ export const stepCrowd = (state: State) => {
 		p[1] += v[1];
 	}
 };
+
+/**
+ * Create a grid for efficient spatial partitioning
+ *
+ * To avoid entities close to a cell border not interacting, an entity can be in more than one cell.
+ * Which might cause entities to interact twice, which is acceptable.
+ */
+const createSpacialPartitioningGrid = ({
+	width,
+	height,
+	capacity,
+}: {
+	width: number;
+	height: number;
+	capacity: number;
+}) => {
+	const margin = 1;
+
+	const cells = Array.from({ length: width * height }, () => ({
+		length: 0,
+		indexes: new Uint16Array(capacity),
+	}));
+	const mod = (n: number, m: number) => ((n % m) + m) % m;
+
+	let gridCellWidth = 1;
+	let gridCellHeight = 1;
+
+	// add an offset that varies every frame, so the grid border is not always at the same position
+	let offset = 0;
+
+	const reset = (worldWidth: number, worldHeight: number) => {
+		gridCellWidth = worldWidth / width;
+		gridCellHeight = worldHeight / height;
+		offset = Math.random() * 4;
+		for (const c of cells) c.length = 0;
+	};
+	const push = (x: number, y: number, i: number) => {
+		const h =
+			mod(Math.floor((x + offset) / gridCellWidth), width) +
+			mod(Math.floor((y + offset) / gridCellHeight), height) * width;
+
+		const cell = cells[h];
+		cell.indexes[cell.length] = i;
+		cell.length++;
+
+		const hx =
+			mod(Math.floor((x + offset + margin) / gridCellWidth), width) +
+			mod(Math.floor((y + offset) / gridCellHeight), height) * width;
+
+		if (hx !== h) {
+			const cell = cells[hx];
+			cell.indexes[cell.length] = i;
+			cell.length++;
+		}
+
+		const hy =
+			mod(Math.floor((x + offset) / gridCellWidth), width) +
+			mod(Math.floor((y + offset + margin) / gridCellHeight), height) * width;
+
+		if (hy !== h) {
+			const cell = cells[hy];
+			cell.indexes[cell.length] = i;
+			cell.length++;
+		}
+	};
+	return { reset, push, cells };
+};
+
+const grid = createSpacialPartitioningGrid({
+	width: 20,
+	height: 6,
+	capacity: Math.floor(MAX_ENTITIES / 4),
+});

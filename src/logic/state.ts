@@ -1,7 +1,7 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
 import type { AnimationIndex } from "../sprites";
 
-export const MAX_ENTITIES = 8_000;
+export const MAX_ENTITIES = 20_000;
 
 export const createState = () => {
 	const objectMatrices = new Float32Array(MAX_ENTITIES * 16);
@@ -106,10 +106,11 @@ export const setInitialState = (
 		if (a1 !== undefined) accessories.push(a1);
 		if (a2 !== undefined) accessories.push(a2);
 
+		const k = Math.sqrt(entityCount) * 1.6;
 		state.runners.push({
 			position: [
-				(Math.random() * 2 - 1) * 20 - 40,
-				(Math.random() * 2 - 1) * 20,
+				(Math.random() * 2 - 1) * k - k * 1.6,
+				(Math.random() * 2 - 1) * k * 0.6,
 			],
 			velocity: [0, 0],
 			animationIndex: animationIndex.walk,

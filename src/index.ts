@@ -54,7 +54,7 @@ const sets = [set];
 createSpriteAtlas().then((res) => {
 	const searchParams = new URL(location.href).searchParams;
 	const message = searchParams.get("message") || "Hello";
-	const entityCount = parseInt(searchParams.get("n")) || 800;
+	const entityCount = parseInt(searchParams.get("n")) || 2000;
 
 	renderer.updateSet(set, { colorTexture: res.texture });
 	setInitialState(state, res.animationIndex, entityCount);

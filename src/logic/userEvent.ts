@@ -18,7 +18,7 @@ export const attachUserEvent = (state: State) => {
 			else {
 				state.zoom = Math.min(
 					1,
-					Math.max(0.1, pinchAnchor.zoom0 * (pinchAnchor.l0 / l)),
+					Math.max(0.1, pinchAnchor.zoom0 * Math.sqrt(pinchAnchor.l0 / l)),
 				);
 			}
 		} else {
@@ -29,6 +29,9 @@ export const attachUserEvent = (state: State) => {
 			state.pointer.x = e.touches[0].clientX / window.innerWidth;
 			state.pointer.y = e.touches[0].clientY / window.innerHeight;
 		}
+	});
+	window.addEventListener("touchend", (e) => {
+		pinchAnchor = null;
 	});
 
 	window.addEventListener(
