@@ -91,14 +91,19 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		draw();
 
+		gl.activeTexture(gl.TEXTURE0 + 1);
+		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
+		gl.activeTexture(gl.TEXTURE0 + 2);
+		gl.bindTexture(gl.TEXTURE_2D, depthTextureScene);
+		gl.activeTexture(gl.TEXTURE0 + 3);
+		gl.bindTexture(gl.TEXTURE_2D, colorTextureBlur);
+
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindVertexArray(vao);
 
 		gl.useProgram(programBlur);
 
 		gl.uniform1i(blurUniforms.u_colorTexture, 1);
-		gl.activeTexture(gl.TEXTURE0 + 1);
-		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferBlur);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -106,16 +111,8 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.useProgram(programComposition);
 
-		gl.activeTexture(gl.TEXTURE0 + 1);
-		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
 		gl.uniform1i(compositionUniforms.u_colorTexture, 1);
-
-		gl.activeTexture(gl.TEXTURE0 + 2);
-		gl.bindTexture(gl.TEXTURE_2D, depthTextureScene);
 		gl.uniform1i(compositionUniforms.u_depthTexture, 2);
-
-		gl.activeTexture(gl.TEXTURE0 + 3);
-		gl.bindTexture(gl.TEXTURE_2D, colorTextureBlur);
 		gl.uniform1i(compositionUniforms.u_blurredTexture, 3);
 
 		gl.uniform4f(
