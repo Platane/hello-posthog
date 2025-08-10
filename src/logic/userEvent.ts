@@ -1,11 +1,7 @@
 import { mat4 } from "gl-matrix";
 import { State } from "./state";
 
-export const attachUserEvent = (
-	state: State,
-	canvas: HTMLCanvasElement,
-	gl: WebGL2RenderingContext,
-) => {
+export const attachUserEvent = (state: State) => {
 	window.addEventListener("mousemove", (e) => {
 		state.pointer.x = e.clientX / window.innerWidth;
 		state.pointer.y = e.clientY / window.innerHeight;
@@ -49,24 +45,4 @@ export const attachUserEvent = (
 		},
 		{ passive: true },
 	);
-
-	const resize = () => {
-		const dpr = window.devicePixelRatio ?? 1;
-
-		canvas.width = canvas.clientWidth * dpr;
-		canvas.height = canvas.clientHeight * dpr;
-
-		gl.viewport(0, 0, canvas.width, canvas.height);
-
-		const aspect = canvas.width / canvas.height;
-		mat4.perspective(
-			state.projectionMatrix,
-			Math.PI / 4 / aspect,
-			aspect,
-			0.1,
-			2000,
-		);
-	};
-
-	window.addEventListener("resize", resize);
 };

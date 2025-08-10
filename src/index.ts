@@ -10,7 +10,11 @@ import { stepProgress } from "./logic/progress";
 import { deriveSprites } from "./logic/sprites";
 import { createState } from "./logic/state";
 import { attachUserEvent } from "./logic/userEvent";
-import { createSpriteRenderer } from "./renderer/spriteRenderer";
+import {
+	createDepthOfFieldPassRenderer,
+	createFrameBuffer,
+} from "./renderer/depthOfFieldPass/renderer";
+import { createSpriteRenderer } from "./renderer/sprite/spriteRenderer";
 import { createSpriteAtlas } from "./sprites";
 
 const spritePromise = createSpriteAtlas();
@@ -30,27 +34,59 @@ gl.depthFunc(gl.LESS);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-const renderer = createSpriteRenderer(gl);
+const rendererSprite = createSpriteRenderer(gl);
+const rendererBlurPass = createDepthOfFieldPassRenderer(gl);
 
-const set = renderer.createSet();
+const set = rendererSprite.createSet();
+
+let fbo = createFrameBuffer(gl);
 
 //
 //
 
 const state = createState(runnerCount);
-attachUserEvent(state, canvas, gl);
-window.dispatchEvent(new Event("resize"));
-
+attachUserEvent(state);
 computeFinalPlacement(state, message);
-
 const stepPhysic = createPhysicStepper(runnerCount);
 
+//
+//
+
+const resize = () => {
+	const dpr = window.devicePixelRatio ?? 1;
+
+	canvas.width = canvas.clientWidth * dpr;
+	canvas.height = canvas.clientHeight * dpr;
+
+	gl.viewport(0, 0, canvas.width, canvas.height);
+
+	const aspect = canvas.width / canvas.height;
+	mat4.perspective(
+		state.projectionMatrix,
+		Math.PI / 4 / aspect,
+		aspect,
+		0.1,
+		2000,
+	);
+
+	fbo.dispose();
+	fbo = createFrameBuffer(gl);
+
+	rendererBlurPass.resize();
+};
+
+window.addEventListener("resize", resize);
+resize();
+
+//
+//
+
 spritePromise.then((res) => {
-	renderer.updateSet(set, { colorTexture: res.texture });
+	rendererSprite.updateSet(set, { colorTexture: res.texture });
 
-	gl.useProgram(renderer._internal.program);
+	gl.useProgram(rendererSprite._internal.program);
 
-	gl.uniform1i(renderer._internal.u_colorTexture, 0);
+	gl.uniform1i(rendererSprite._internal.u_colorTexture, 0);
 	gl.bindVertexArray(set.vao);
 
 	gl.activeTexture(gl.TEXTURE0);
@@ -71,27 +107,28 @@ spritePromise.then((res) => {
 
 		//
 
-		renderer.updateSet(set, state);
+		rendererSprite.updateSet(set, state);
 
 		//
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		//
-		// usually the API is meant to call renderer.draw(state.projectionMatrix,state.viewMatrix,[set])
-		// but since there is only oone program let's save some gl instructions
-		gl.uniformMatrix4fv(
-			renderer._internal.u_viewMatrix,
-			false,
-			state.viewMatrix,
-		);
-		gl.uniformMatrix4fv(
-			renderer._internal.u_projectionMatrix,
-			false,
-			state.projectionMatrix,
-		);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.framebuffer);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		rendererSprite.draw(state.projectionMatrix, state.viewMatrix, [set]);
 
-		gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, set.numInstances);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		const l = Math.hypot(
+			state.camera.eye[0],
+			state.camera.eye[1],
+			state.camera.eye[2],
+		);
+		rendererBlurPass.draw(fbo.colorTexture, fbo.depthTexture, {
+			near: 0.1,
+			far: 2000,
+			depthFocus: l,
+			depthFocusSpread: l / 0.5,
+		});
 
 		//
 
