@@ -16,4 +16,5 @@ export enum sprite {
 	flag,
 	graduation,
 	shadow,
+	whiteSquare,
 }
