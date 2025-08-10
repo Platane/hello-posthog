@@ -158,10 +158,14 @@ export const createSpriteAtlas = async () => {
 	);
 
 	const destSize = SOURCE_SIZE;
+	const margin = 4;
 
-	const destWidth = Math.floor(2048 / destSize) * destSize;
+	const MAX_TEXTURE_SIZE = 2048;
+	const k = Math.floor((MAX_TEXTURE_SIZE - margin) / (destSize + margin));
+	const destWidth = k * (destSize + margin) + margin;
 	const destHeight =
-		Math.ceil(totalSpriteCount / (destWidth / destSize)) * destSize;
+		Math.ceil(totalSpriteCount / k) * (destSize + margin) + margin;
+
 	const canvas = new OffscreenCanvas(destWidth, destHeight);
 
 	// const canvas = document.createElement("canvas");
@@ -176,8 +180,8 @@ export const createSpriteAtlas = async () => {
 
 	const coords = {} as Record<sprite, Box[]>;
 
-	let dx = 0;
-	let dy = 0;
+	let dx = margin;
+	let dy = margin;
 	for (const { image, name, spriteCount } of images) {
 		const boxes: Box[] = [];
 		coords[name] = boxes;
@@ -202,15 +206,15 @@ export const createSpriteAtlas = async () => {
 				destSize,
 				destSize,
 			);
-			dx += destSize;
+			dx += destSize + margin;
 			sx += SOURCE_SIZE;
 			if (sx >= image.width) {
 				sx = 0;
 				sy += SOURCE_SIZE;
 			}
 			if (dx >= destWidth) {
-				dx = 0;
-				dy += destSize;
+				dx = margin;
+				dy += destSize + margin;
 			}
 		}
 	}
