@@ -72,9 +72,7 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 		),
 	};
 
-	const draw = (
-		colorTexture: WebGLTexture,
-		depthTexture: WebGLTexture,
+	const withEffect = (
 		{
 			near,
 			far,
@@ -86,15 +84,21 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 			depthFocus: number;
 			depthFocusSpread: number;
 		},
+		draw: () => void,
 	) => {
+		gl.enable(gl.DEPTH_TEST);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferScene);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		draw();
+
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindVertexArray(vao);
 
 		gl.useProgram(programBlur);
 
-		gl.activeTexture(gl.TEXTURE0 + 1);
-		gl.bindTexture(gl.TEXTURE_2D, colorTexture);
 		gl.uniform1i(blurUniforms.u_colorTexture, 1);
+		gl.activeTexture(gl.TEXTURE0 + 1);
+		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferBlur);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -102,17 +106,17 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.useProgram(programComposition);
 
+		gl.activeTexture(gl.TEXTURE0 + 1);
+		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
+		gl.uniform1i(compositionUniforms.u_colorTexture, 1);
+
 		gl.activeTexture(gl.TEXTURE0 + 2);
-		gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-		gl.uniform1i(compositionUniforms.u_colorTexture, 2);
+		gl.bindTexture(gl.TEXTURE_2D, depthTextureScene);
+		gl.uniform1i(compositionUniforms.u_depthTexture, 2);
 
 		gl.activeTexture(gl.TEXTURE0 + 3);
 		gl.bindTexture(gl.TEXTURE_2D, colorTextureBlur);
 		gl.uniform1i(compositionUniforms.u_blurredTexture, 3);
-
-		gl.activeTexture(gl.TEXTURE0 + 4);
-		gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-		gl.uniform1i(compositionUniforms.u_depthTexture, 4);
 
 		gl.uniform4f(
 			compositionUniforms.u_parameters,
@@ -124,12 +128,15 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-		gl.enable(gl.DEPTH_TEST);
 	};
+
+	let colorTextureScene = gl.createTexture();
+	let depthTextureScene = gl.createTexture();
+	let framebufferScene = gl.createFramebuffer();
 
 	let colorTextureBlur = gl.createTexture();
 	let framebufferBlur = gl.createFramebuffer();
+
 	const resize = () => {
 		gl.deleteTexture(colorTextureBlur);
 		colorTextureBlur = gl.createTexture();
@@ -142,6 +149,7 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 			gl.drawingBufferHeight,
 		);
 
+		gl.deleteFramebuffer(framebufferBlur);
 		framebufferBlur = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferBlur);
 		gl.framebufferTexture2D(
@@ -154,67 +162,62 @@ export const createDepthOfFieldPassRenderer = (gl: WebGL2RenderingContext) => {
 
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.deleteTexture(colorTextureScene);
+		colorTextureScene = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, colorTextureScene);
+		gl.texStorage2D(
+			gl.TEXTURE_2D,
+			1,
+			gl.RGBA8,
+			gl.drawingBufferWidth,
+			gl.drawingBufferHeight,
+		);
+
+		gl.deleteTexture(depthTextureScene);
+		depthTextureScene = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, depthTextureScene);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texStorage2D(
+			gl.TEXTURE_2D,
+			1,
+			gl.DEPTH24_STENCIL8,
+			gl.drawingBufferWidth,
+			gl.drawingBufferHeight,
+		);
+
+		gl.deleteFramebuffer(framebufferScene);
+		framebufferScene = gl.createFramebuffer();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferScene);
+		gl.framebufferTexture2D(
+			gl.FRAMEBUFFER,
+			gl.COLOR_ATTACHMENT0,
+			gl.TEXTURE_2D,
+			colorTextureScene,
+			0,
+		);
+		gl.framebufferTexture2D(
+			gl.FRAMEBUFFER,
+			gl.DEPTH_ATTACHMENT,
+			gl.TEXTURE_2D,
+			depthTextureScene,
+			0,
+		);
+
+		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 	};
 
 	const dispose = () => {
+		gl.deleteTexture(colorTextureBlur);
+		gl.deleteFramebuffer(framebufferBlur);
+		gl.deleteTexture(colorTextureScene);
+		gl.deleteTexture(depthTextureScene);
+		gl.deleteFramebuffer(framebufferScene);
+
 		gl.deleteBuffer(quadBuffer);
 		gl.deleteProgram(programBlur);
 	};
 
-	return { program: programBlur, draw, resize, dispose };
-};
-
-export const createFrameBuffer = (gl: WebGL2RenderingContext) => {
-	const colorTexture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-	gl.texStorage2D(
-		gl.TEXTURE_2D,
-		1,
-		gl.RGBA8,
-		gl.drawingBufferWidth,
-		gl.drawingBufferHeight,
-	);
-
-	const depthTexture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texStorage2D(
-		gl.TEXTURE_2D,
-		1,
-		gl.DEPTH24_STENCIL8,
-		gl.drawingBufferWidth,
-		gl.drawingBufferHeight,
-	);
-
-	const framebuffer = gl.createFramebuffer();
-	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-	gl.framebufferTexture2D(
-		gl.FRAMEBUFFER,
-		gl.COLOR_ATTACHMENT0,
-		gl.TEXTURE_2D,
-		colorTexture,
-		0,
-	);
-	gl.framebufferTexture2D(
-		gl.FRAMEBUFFER,
-		gl.DEPTH_ATTACHMENT,
-		gl.TEXTURE_2D,
-		depthTexture,
-		0,
-	);
-
-	gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-	const dispose = () => {
-		gl.deleteTexture(colorTexture);
-		gl.deleteTexture(depthTexture);
-		gl.deleteFramebuffer(framebuffer);
-	};
-
-	return { dispose, depthTexture, colorTexture, framebuffer };
+	return { program: programBlur, withEffect, resize, dispose };
 };

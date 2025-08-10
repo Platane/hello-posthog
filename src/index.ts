@@ -1,4 +1,4 @@
-import { mat4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import {
 	deriveViewMatrix,
 	stepCameraWobble,
@@ -10,10 +10,7 @@ import { stepProgress } from "./logic/progress";
 import { deriveSprites } from "./logic/sprites";
 import { createState } from "./logic/state";
 import { attachUserEvent } from "./logic/userEvent";
-import {
-	createDepthOfFieldPassRenderer,
-	createFrameBuffer,
-} from "./renderer/depthOfFieldPass/renderer";
+import { createDepthOfFieldPassRenderer } from "./renderer/depthOfFieldPass/renderer";
 import { createSpriteRenderer } from "./renderer/sprite/spriteRenderer";
 import { createSpriteAtlas } from "./sprites";
 
@@ -38,8 +35,6 @@ const rendererSprite = createSpriteRenderer(gl);
 const rendererBlurPass = createDepthOfFieldPassRenderer(gl);
 
 const set = rendererSprite.createSet();
-
-let fbo = createFrameBuffer(gl);
 
 //
 //
@@ -68,9 +63,6 @@ const resize = () => {
 		0.1,
 		2000,
 	);
-
-	fbo.dispose();
-	fbo = createFrameBuffer(gl);
 
 	rendererBlurPass.resize();
 };
@@ -111,24 +103,19 @@ spritePromise.then((res) => {
 
 		//
 
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.framebuffer);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		rendererSprite.draw(state.projectionMatrix, state.viewMatrix, [set]);
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		const l = Math.hypot(
-			state.camera.eye[0],
-			state.camera.eye[1],
-			state.camera.eye[2],
+		const l = vec3.length(state.camera.eye);
+		const aspect = canvas.width / canvas.height;
+		rendererBlurPass.withEffect(
+			{
+				near: 0.1,
+				far: 2000,
+				depthFocus: l,
+				depthFocusSpread: l / 0.6 / aspect,
+			},
+			() => {
+				rendererSprite.draw(state.projectionMatrix, state.viewMatrix, [set]);
+			},
 		);
-		rendererBlurPass.draw(fbo.colorTexture, fbo.depthTexture, {
-			near: 0.1,
-			far: 2000,
-			depthFocus: l,
-			depthFocusSpread: l / 0.5,
-		});
 
 		//
 

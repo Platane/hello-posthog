@@ -17,7 +17,7 @@ void main() {
     float count = 0.0;
     float separation = 1.8;
 
-    int size = 4;
+    int size = 3;
      for (int i = -size; i <= size; ++i) {
         for (int j = -size; j <= size; ++j) {
 
