@@ -47,7 +47,7 @@ export const deriveSprites = (state: State, coords: Record<sprite, Box[]>) => {
 		// i++;
 	}
 
-	// ground
+	// pointer on ground
 	{
 		const tr = state.objectTransforms[i];
 		vec3.set(v, state.pointerOnGround[0], state.pointerOnGround[1], 0);
@@ -60,6 +60,24 @@ export const deriveSprites = (state: State, coords: Record<sprite, Box[]>) => {
 		state.spriteBoxes[i * 4 + 3] = max[1];
 
 		state.hues[i] = 0.5;
+
+		i++;
+	}
+
+	// ground
+	{
+		const tr = state.objectTransforms[i];
+		quat.identity(q);
+		vec3.set(s, 200, 200, 200);
+		vec3.set(v, 0, 0, -0.05);
+		mat4.fromRotationTranslationScale(tr, q, v, s);
+		const [min, max] = coords[sprite.whiteSquare][0];
+		state.spriteBoxes[i * 4 + 0] = min[0];
+		state.spriteBoxes[i * 4 + 1] = min[1];
+		state.spriteBoxes[i * 4 + 2] = max[0];
+		state.spriteBoxes[i * 4 + 3] = max[1];
+
+		state.hues[i] = 0;
 
 		i++;
 	}

@@ -19,6 +19,15 @@ const createShadowSpriteSheet = () => {
 
 	return canvas;
 };
+const createWhiteSquareSpriteSheet = () => {
+	const canvas = new OffscreenCanvas(SOURCE_SIZE, SOURCE_SIZE);
+	const ctx = canvas.getContext("2d");
+
+	ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+	ctx.fillRect(0, 0, SOURCE_SIZE, SOURCE_SIZE);
+
+	return canvas;
+};
 
 const imageUrls = {
 	[sprite.walk]: new URL(
@@ -86,6 +95,7 @@ const imageUrls = {
 		import.meta.url,
 	),
 	[sprite.shadow]: createShadowSpriteSheet(),
+	[sprite.whiteSquare]: createWhiteSquareSpriteSheet(),
 } satisfies Record<sprite, unknown>;
 
 /**
